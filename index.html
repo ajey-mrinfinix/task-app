@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tasks &#8212; Personal Task Manager</title>
+<meta name="description" content="A personal task manager with real-time sync across devices.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--sidebar-bg:#1f1e1e;--sidebar-hover:rgba(255,255,255,0.06);--sidebar-active:rgba(255,255,255,0.10);
+--sidebar-text:#ccc;--sidebar-muted:#888;--main-bg:#fff;--text-primary:#202020;
+--text-muted:#888;--text-faint:#bbb;--border:#f0f0f0;--border-strong:#e0e0e0;
+--accent:#db4035;--p1:#db4035;--p2:#ff9a14;--p3:#4772fa;--p4:#ccc;
+--due-future:#058527;--due-soon:#ad6200;--due-overdue:#db4035;--green-complete:#058527;
+--sidebar-w:260px;
+}
+html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-primary);background:var(--main-bg)}
+/* LOGIN */
+#login-overlay{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#1a1a1a 0%,#2d1f1f 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;color:#fff}
+#login-overlay.hidden{display:none}
+#login-overlay h1{font-size:32px;font-weight:700;letter-spacing:-0.5px;display:flex;align-items:center;gap:10px}
+#login-overlay p{color:#888;font-size:14px}
+#login-box{display:flex;gap:8px}
+#login-box input{padding:12px 18px;border-radius:10px;border:1px solid #444;background:#2a2a2a;color:#fff;font-size:14px;font-family:inherit;width:260px;outline:none;transition:border-color .2s}
+#login-box input:focus{border-color:var(--accent)}
+#login-box button{padding:12px 24px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;font-family:inherit;font-size:14px;transition:transform .1s,opacity .2s}
+#login-box button:hover{opacity:.9}
+#login-box button:active{transform:scale(.97)}
+#login-error{color:var(--accent);font-size:13px;min-height:20px}
+/* LAYOUT */
+#app{display:none;height:100vh;overflow:hidden}
+#app.active{display:flex}
+/* SIDEBAR */
+#sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;height:100vh;overflow-y:auto;transition:transform .25s ease}
+.sidebar-header{display:flex;align-items:center;justify-content:space-between;padding:16px 14px 12px}
+.sidebar-logo{color:#fff;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.lock-btn{background:none;border:none;color:var(--sidebar-muted);cursor:pointer;font-size:16px;padding:6px 8px;border-radius:6px;transition:all .15s}
+.lock-btn:hover{background:var(--sidebar-hover);color:#fff}
+.nav-section{padding:4px 8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;color:var(--sidebar-text);font-size:14px;font-weight:500;cursor:pointer;transition:background .15s}
+.nav-item:hover{background:var(--sidebar-hover)}
+.nav-item.active{background:var(--sidebar-active);color:#fff}
+.nav-icon{width:22px;text-align:center;flex-shrink:0;font-size:15px}
+.nav-item .count{margin-left:auto;font-size:12px;color:var(--sidebar-muted);min-width:18px;text-align:right}
+.sidebar-section{padding:8px}
+.sidebar-section-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px 4px;color:var(--sidebar-muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+.sidebar-section-header button{background:none;border:none;color:var(--sidebar-muted);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;line-height:1}
+.sidebar-section-header button:hover{color:#fff;background:var(--sidebar-hover)}
+.project-item,.label-item{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:8px;color:var(--sidebar-text);font-size:14px;font-weight:500;cursor:pointer;transition:background .15s}
+.project-item:hover,.label-item:hover{background:var(--sidebar-hover)}
+.project-item.active,.label-item.active{background:var(--sidebar-active);color:#fff}
+.project-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.project-item .count,.label-item .count{margin-left:auto;font-size:12px;color:var(--sidebar-muted)}
+.add-btn{display:flex;align-items:center;gap:8px;padding:7px 12px;color:var(--sidebar-muted);font-size:13px;cursor:pointer;border-radius:6px;transition:all .15s}
+.add-btn:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main-header{padding:28px 36px 16px;border-bottom:1px solid var(--border)}
+.main-header h1{font-size:22px;font-weight:700;letter-spacing:-.3px}
+.main-header .subtitle{font-size:13px;color:var(--text-muted);margin-top:3px}
+.main-content{flex:1;overflow-y:auto;padding:0 36px 40px}
+/* QUICK ADD */
+.quick-add{padding:12px 0;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:14px;border-bottom:1px solid var(--border);transition:color .15s}
+.quick-add:hover{color:var(--accent)}
+.quick-add .plus{font-size:18px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--accent);transition:all .15s}
+.quick-add:hover .plus{background:var(--accent);color:#fff}
+/* ADD PANEL */
+.add-panel{display:none;border:1px solid var(--border-strong);border-radius:12px;padding:16px;margin:12px 0;animation:fadeSlide .18s ease;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.add-panel.open{display:block}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.add-panel input[type="text"],.add-panel textarea{width:100%;border:none;outline:none;font-family:inherit;resize:none}
+.add-panel .task-name-input{font-size:15px;font-weight:600;padding:4px 0;color:var(--text-primary)}
+.add-panel .task-desc-input{font-size:13px;color:var(--text-muted);padding:4px 0;min-height:24px}
+.pill-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:8px;border:1px solid var(--border-strong);font-size:12px;color:var(--text-muted);cursor:pointer;background:#fff;font-family:inherit;position:relative;transition:all .15s}
+.pill:hover{background:#f8f8f8;border-color:#ccc}
+.pill select,.pill input[type="datetime-local"]{position:absolute;opacity:0;inset:0;cursor:pointer;font-family:inherit;width:100%;height:100%}
+.pill-label{pointer-events:none;display:flex;align-items:center;gap:4px}
+.add-panel-actions{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+.btn-add{padding:8px 18px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;transition:opacity .15s}
+.btn-add:hover{opacity:.9}
+.btn-add:disabled{opacity:.5;cursor:default}
+.btn-cancel{padding:8px 18px;border-radius:8px;border:none;background:#f5f5f5;color:var(--text-muted);font-weight:500;font-size:13px;cursor:pointer;font-family:inherit;transition:background .15s}
+.btn-cancel:hover{background:#eee}
+/* TASK LIST */
+.section-header{font-size:14px;font-weight:700;padding:20px 0 8px;color:var(--text-primary);border-bottom:1px solid var(--border);margin-top:4px;display:flex;align-items:center;gap:8px}
+.section-header .overdue-label{color:var(--due-overdue)}
+.task-item{display:flex;align-items:flex-start;padding:10px 8px 10px 4px;border-bottom:1px solid var(--border);position:relative;animation:fadeSlide .18s ease;transition:opacity .2s}
+.task-item.p1-border{border-left:3px solid var(--p1);padding-left:10px}
+.task-item.done{opacity:.45}
+.task-item.done .task-text{text-decoration:line-through}
+.priority-circle{width:20px;height:20px;border-radius:50%;border:2px solid var(--p4);cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all .2s}
+.priority-circle:hover{background:rgba(0,0,0,.06);transform:scale(1.1)}
+.priority-circle.p1{border-color:var(--p1)}.priority-circle.p2{border-color:var(--p2)}.priority-circle.p3{border-color:var(--p3)}
+.task-item.done .priority-circle{background:var(--green-complete);border-color:var(--green-complete);color:#fff}
+.task-body{margin-left:10px;flex:1;min-width:0}
+.task-text{font-size:14px;font-weight:500;color:var(--text-primary);word-break:break-word}
+.task-desc{font-size:13px;color:var(--text-muted);margin-top:2px;word-break:break-word}
+.task-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.chip{font-size:11px;padding:2px 8px;border-radius:4px;display:inline-flex;align-items:center;gap:3px;font-weight:500}
+.chip-due{background:#edf7ee;color:var(--due-future)}
+.chip-due.soon{background:#fff5e6;color:var(--due-soon)}
+.chip-due.overdue{background:#fdeeed;color:var(--due-overdue)}
+.chip-deadline{background:#fdeeed;color:var(--due-overdue)}
+.chip-project{background:#f5f5f5;color:var(--text-muted)}
+.chip-label{background:#f0efff;color:#6c5ce7}
+.chip-priority{font-size:10px;padding:2px 6px;border-radius:4px}
+.chip-priority.cp1{background:#fdeeed;color:var(--p1)}.chip-priority.cp2{background:#fff5e6;color:var(--p2)}.chip-priority.cp3{background:#eef1ff;color:var(--p3)}
+.task-actions{display:none;gap:4px;position:absolute;right:8px;top:8px;background:#fff;padding:2px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.task-item:hover .task-actions{display:flex}
+.task-actions button{background:none;border:none;cursor:pointer;font-size:14px;padding:4px 6px;border-radius:4px;color:var(--text-muted);transition:all .15s}
+.task-actions button:hover{background:#f5f5f5;color:var(--text-primary)}
+/* SUBTASKS */
+.subtask-list{margin-left:30px;margin-top:4px}
+.subtask-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
+.subtask-item .priority-circle{width:16px;height:16px;border-width:1.5px}
+.subtask-text{font-weight:400;color:var(--text-primary)}
+.subtask-item.done .subtask-text{text-decoration:line-through;opacity:.5}
+.subtask-item.done .priority-circle{background:var(--green-complete);border-color:var(--green-complete);color:#fff;font-size:9px}
+.add-subtask-btn{font-size:12px;color:var(--text-muted);cursor:pointer;padding:4px 0 4px 30px;display:inline-flex;align-items:center;gap:4px;transition:color .15s}
+.add-subtask-btn:hover{color:var(--accent)}
+.subtask-inline{display:flex;gap:6px;padding:4px 0 4px 30px}
+.subtask-inline input{flex:1;border:1px solid var(--border-strong);padding:6px 10px;border-radius:8px;font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
+.subtask-inline input:focus{border-color:var(--accent)}
+.subtask-inline button{padding:5px 12px;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit}
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:24px;width:90%;max-width:480px;max-height:85vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.2)}
+.modal h2{font-size:18px;font-weight:700;margin-bottom:20px;letter-spacing:-.3px}
+.modal label{display:block;font-size:12px;font-weight:600;margin-bottom:4px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px}
+.modal input[type="text"],.modal textarea,.modal input[type="datetime-local"],.modal select{width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:8px;font-size:14px;font-family:inherit;margin-bottom:14px;outline:none;transition:border-color .15s}
+.modal input:focus,.modal textarea:focus,.modal select:focus{border-color:var(--accent)}
+.modal textarea{resize:vertical;min-height:50px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.modal-actions .btn-danger{background:#fdeeed;color:var(--accent);border:none;padding:8px 18px;border-radius:8px;font-weight:500;font-size:13px;cursor:pointer;font-family:inherit;margin-right:auto;transition:all .15s}
+.modal-actions .btn-danger:hover{background:var(--accent);color:#fff}
+/* COLOUR PICKER */
+.colour-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.colour-swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s}
+.colour-swatch:hover{transform:scale(1.1)}.colour-swatch.selected{border-color:var(--text-primary)}
+/* LABELS MULTI-SELECT */
+.labels-container{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.label-tag{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:12px;background:#f0efff;color:#6c5ce7;cursor:pointer;border:1.5px solid transparent;transition:all .15s;font-weight:500}
+.label-tag:hover{background:#e8e6ff}
+.label-tag.selected{border-color:#6c5ce7;background:#ddd8ff}
+/* CONFIRM */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:#fff;border-radius:14px;padding:28px;width:90%;max-width:360px;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.2)}
+.confirm-box p{font-size:15px;margin-bottom:20px;color:var(--text-primary);font-weight:500}
+.confirm-box .actions{display:flex;gap:8px;justify-content:center}
+/* HAMBURGER */
+.hamburger{display:none;position:fixed;top:12px;left:12px;z-index:900;background:var(--sidebar-bg);border:none;color:#fff;font-size:20px;padding:8px 12px;border-radius:8px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:800}
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:80px 20px;color:var(--text-muted)}
+.empty-state .e-icon{font-size:48px;margin-bottom:16px;opacity:.6}
+.empty-state p{font-size:15px;font-weight:500}
+/* RESPONSIVE */
+@media(max-width:680px){
+  #sidebar{position:fixed;z-index:850;transform:translateX(-100%);height:100vh}
+  #sidebar.open{transform:translateX(0)}
+  .hamburger{display:block}
+  .sidebar-overlay.open{display:block}
+  .main-header{padding:24px 16px 16px 52px}
+  .main-content{padding:0 16px 32px}
+}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
+#sidebar::-webkit-scrollbar-thumb{background:#444}
+</style>
+</head>
+<body>
+<!-- LOGIN -->
+<div id="login-overlay">
+  <h1><span>&#x1F4CB;</span> Tasks</h1>
+  <p>Enter your password to unlock</p>
+  <div id="login-box">
+    <input type="password" id="login-pw" placeholder="Password" autocomplete="off">
+    <button id="login-btn">Unlock</button>
+  </div>
+  <div id="login-error"></div>
+</div>
+<!-- APP -->
+<button class="hamburger" id="hamburger-btn">&#x2630;</button>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><span>&#x1F4CB;</span> Tasks</div>
+      <button class="lock-btn" id="lock-btn" title="Lock">&#x1F512;</button>
+    </div>
+    <nav class="nav-section">
+      <div class="nav-item active" data-view="inbox"><span class="nav-icon">&#x1F4E5;</span>Inbox<span class="count" id="cnt-inbox"></span></div>
+      <div class="nav-item" data-view="today"><span class="nav-icon">&#x1F4C5;</span>Today<span class="count" id="cnt-today"></span></div>
+      <div class="nav-item" data-view="upcoming"><span class="nav-icon">&#x1F4C6;</span>Upcoming<span class="count" id="cnt-upcoming"></span></div>
+      <div class="nav-item" data-view="completed"><span class="nav-icon">&#x2705;</span>Completed<span class="count" id="cnt-completed"></span></div>
+    </nav>
+    <div class="sidebar-section">
+      <div class="sidebar-section-header">Projects<button id="add-project-btn">+</button></div>
+      <div id="projects-list"></div>
+      <div class="add-btn" id="add-project-link">+ Add project</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-header">Labels<button id="add-label-btn">+</button></div>
+      <div id="labels-list"></div>
+      <div class="add-btn" id="add-label-link">+ Add label</div>
+    </div>
+  </aside>
+  <div id="main">
+    <div class="main-header"><h1 id="view-title">Inbox</h1><div class="subtitle" id="view-subtitle"></div></div>
+    <div class="main-content">
+      <div class="quick-add" id="quick-add"><span class="plus">+</span> Add task</div>
+      <div class="add-panel" id="add-panel">
+        <input type="text" class="task-name-input" id="new-task-name" placeholder="Task name">
+        <textarea class="task-desc-input" id="new-task-desc" placeholder="Description" rows="1"></textarea>
+        <div class="pill-row">
+          <div class="pill"><span class="pill-label">&#x1F4C5; <span id="pill-due-text">Due date</span></span><input type="datetime-local" id="new-task-due"></div>
+          <div class="pill"><span class="pill-label">&#x1F6A9; <span id="pill-pri-text">Priority</span></span>
+            <select id="new-task-priority"><option value="4">No priority</option><option value="1">Priority 1</option><option value="2">Priority 2</option><option value="3">Priority 3</option></select></div>
+          <div class="pill"><span class="pill-label">&#x1F4C1; <span id="pill-proj-text">Inbox</span></span>
+            <select id="new-task-project"><option value="inbox">Inbox</option></select></div>
+          <div class="pill"><span class="pill-label">&#x2691; <span id="pill-dl-text">Deadline</span></span><input type="datetime-local" id="new-task-deadline"></div>
+        </div>
+        <div class="pill-row" style="margin-top:6px"><div id="add-labels-row" class="labels-container"></div></div>
+        <div class="add-panel-actions">
+          <button class="btn-cancel" id="cancel-add">Cancel</button>
+          <button class="btn-add" id="btn-add-task">Add task</button>
+        </div>
+      </div>
+      <div id="task-list"></div>
+    </div>
+  </div>
+</div>
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal"><div class="modal">
+  <h2>Edit task</h2><input type="hidden" id="edit-task-id">
+  <label>Task name</label><input type="text" id="edit-task-name">
+  <label>Description</label><textarea id="edit-task-desc" rows="2"></textarea>
+  <label>Due date</label><input type="datetime-local" id="edit-task-due">
+  <label>Deadline</label><input type="datetime-local" id="edit-task-deadline">
+  <label>Priority</label><select id="edit-task-priority"><option value="4">No priority</option><option value="1">Priority 1</option><option value="2">Priority 2</option><option value="3">Priority 3</option></select>
+  <label>Project</label><select id="edit-task-project"><option value="inbox">Inbox</option></select>
+  <label>Labels</label><div id="edit-labels-row" class="labels-container"></div>
+  <div class="modal-actions"><button class="btn-danger" id="edit-delete">Delete</button><button class="btn-cancel" id="edit-cancel">Cancel</button><button class="btn-add" id="edit-save">Save</button></div>
+</div></div>
+<!-- PROJECT MODAL -->
+<div class="modal-overlay" id="project-modal"><div class="modal">
+  <h2 id="project-modal-title">New project</h2><input type="hidden" id="project-edit-id">
+  <label>Project name</label><input type="text" id="project-name-input" placeholder="Project name">
+  <label>Colour</label><div class="colour-grid" id="colour-grid"></div>
+  <div class="modal-actions"><button class="btn-danger" id="project-delete-btn" style="display:none">Delete</button><button class="btn-cancel" id="project-cancel">Cancel</button><button class="btn-add" id="project-save">Save</button></div>
+</div></div>
+<!-- LABEL MODAL -->
+<div class="modal-overlay" id="label-modal"><div class="modal">
+  <h2 id="label-modal-title">New label</h2><input type="hidden" id="label-edit-id">
+  <label>Label name</label><input type="text" id="label-name-input" placeholder="e.g. @work">
+  <div class="modal-actions"><button class="btn-danger" id="label-delete-btn" style="display:none">Delete</button><button class="btn-cancel" id="label-cancel">Cancel</button><button class="btn-add" id="label-save">Save</button></div>
+</div></div>
+<!-- CONFIRM -->
+<div class="confirm-overlay" id="confirm-dialog"><div class="confirm-box">
+  <p id="confirm-msg">Are you sure?</p>
+  <div class="actions"><button class="btn-cancel" id="confirm-cancel">Cancel</button><button class="btn-add" id="confirm-ok" style="background:var(--accent)">Delete</button></div>
+</div></div>
+
+<script type="module">
+const APP_PASSWORD='admin123';
+const COLOURS=['#db4035','#ff9a14','#ffd43b','#7bc86c','#058527','#299438','#6accbc','#158fad','#4772fa','#8f4ffe','#eb96eb','#e05194'];
+const firebaseConfig={apiKey:"YOUR_API_KEY",authDomain:"YOUR_PROJECT.firebaseapp.com",projectId:"YOUR_PROJECT_ID",storageBucket:"YOUR_PROJECT.appspot.com",messagingSenderId:"0",appId:"YOUR_APP_ID"};
+
+let db,useFB=false;
+async function initFB(){
+  try{
+    const{initializeApp}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const F=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    if(firebaseConfig.apiKey==='YOUR_API_KEY'){console.warn('Firebase not configured, using localStorage');return}
+    const app=initializeApp(firebaseConfig);db=F.getFirestore(app);useFB=true;window._F=F;
+    F.onSnapshot(F.collection(db,'tasks'),s=>{S.tasks=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()});
+    F.onSnapshot(F.collection(db,'projects'),s=>{S.projects=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()});
+    F.onSnapshot(F.collection(db,'labels'),s=>{S.labels=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()});
+  }catch(e){console.warn('Firebase init failed, localStorage fallback',e)}
+}
+
+function lsG(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch{return[]}}
+function lsS(k,v){localStorage.setItem(k,JSON.stringify(v))}
+
+const S={tasks:[],projects:[],labels:[],view:'inbox',projId:null,labelName:null};
+const $=id=>document.getElementById(id);
+
+// AUTH
+$('login-btn').onclick=()=>{
+  if($('login-pw').value===APP_PASSWORD){sessionStorage.setItem('a','1');$('login-overlay').classList.add('hidden');$('app').classList.add('active');boot()}
+  else{$('login-error').textContent='Wrong password';$('login-pw').value=''}
+};
+$('lock-btn').onclick=()=>{sessionStorage.removeItem('a');location.reload()};
+$('login-pw').onkeydown=e=>{if(e.key==='Enter')$('login-btn').click()};
+if(sessionStorage.getItem('a')==='1'){$('login-overlay').classList.add('hidden');$('app').classList.add('active');boot()}
+
+async function boot(){await initFB();if(!useFB){S.tasks=lsG('tasks');S.projects=lsG('projects');S.labels=lsG('labels')}renderAll();buildColours()}
+
+function uuid(){return crypto.randomUUID?crypto.randomUUID():'xxxx-xxxx-xxxx'.replace(/x/g,()=>((Math.random()*16)|0).toString(16))}
+
+// DATE HELPERS
+function sod(d){const r=new Date(d);r.setHours(0,0,0,0);return r}
+function isToday(d){return sod(new Date(d)).getTime()===sod(new Date()).getTime()}
+function isOverdue(d){return new Date(d)<new Date()&&!isToday(d)}
+function dayDiff(a,b){return Math.round((sod(new Date(b))-sod(new Date(a)))/864e5)}
+
+function relDate(d){
+  if(!d)return '';const diff=dayDiff(new Date(),d);
+  if(diff===0)return 'Today';if(diff===1)return 'Tomorrow';if(diff===-1)return 'Yesterday';
+  if(diff>1&&diff<=7)return 'in '+diff+'d';if(diff<-1)return Math.abs(diff)+'d ago';
+  return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short'})
+}
+function dueClass(d){if(!d)return '';const diff=dayDiff(new Date(),d);return diff<0?'overdue':diff<=1?'soon':''}
+function secDate(d){
+  const dt=new Date(d),diff=dayDiff(new Date(),d);
+  const dn=dt.toLocaleDateString('en-GB',{weekday:'long'}),ds=dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  if(diff===0)return 'Today \u2014 '+ds;if(diff===1)return 'Tomorrow \u2014 '+dn+' '+ds;return dn+' \u2014 '+ds
+}
+
+function sortT(a){return[...a].sort((x,y)=>{if(x.priority!==y.priority)return x.priority-y.priority;if(x.due&&y.due)return new Date(x.due)-new Date(y.due);if(x.due)return -1;if(y.due)return 1;return(y.createdAt||0)-(x.createdAt||0)})}
+
+// CRUD
+async function dbAdd(c,d){
+  if(useFB){const F=window._F;return(await F.addDoc(F.collection(db,c),d)).id}
+  const id=uuid(),a=lsG(c);a.push({id,...d});lsS(c,a);S[c]=a;renderAll();return id
+}
+async function dbUp(c,id,d){
+  if(useFB){const F=window._F;await F.updateDoc(F.doc(db,c,id),d);return}
+  const a=lsG(c),i=a.findIndex(x=>x.id===id);if(i>=0){Object.assign(a[i],d);lsS(c,a);S[c]=a;renderAll()}
+}
+async function dbDel(c,id){
+  if(useFB){const F=window._F;await F.deleteDoc(F.doc(db,c,id));return}
+  const a=lsG(c).filter(x=>x.id!==id);lsS(c,a);S[c]=a;renderAll()
+}
+
+// ADD TASK
+$('btn-add-task').onclick=async()=>{
+  const n=$('new-task-name').value.trim();if(!n)return;
+  const labels=[...$('add-labels-row').querySelectorAll('.label-tag.selected')].map(l=>l.dataset.name);
+  await dbAdd('tasks',{text:n,description:$('new-task-desc').value.trim(),done:false,
+    priority:+$('new-task-priority').value,projectId:$('new-task-project').value,
+    labels,due:$('new-task-due').value||null,deadline:$('new-task-deadline').value||null,
+    subtasks:[],createdAt:Date.now(),completedAt:null});
+  $('new-task-name').value='';$('new-task-desc').value='';$('new-task-due').value='';
+  $('new-task-deadline').value='';$('new-task-priority').value='4';
+  $('add-labels-row').querySelectorAll('.label-tag').forEach(l=>l.classList.remove('selected'));
+  updPills();$('new-task-name').focus()
+};
+
+function toggleDone(id){const t=S.tasks.find(x=>x.id===id);if(t)dbUp('tasks',id,{done:!t.done,completedAt:t.done?null:Date.now()})}
+function delTask(id){showConfirm('Delete this task?',()=>dbDel('tasks',id))}
+function dupTask(id){const t=S.tasks.find(x=>x.id===id);if(t){const{id:_,...d}=t;dbAdd('tasks',{...d,done:false,completedAt:null,createdAt:Date.now()})}}
+function toggleSub(tid,i){const t=S.tasks.find(x=>x.id===tid);if(!t)return;const s=[...(t.subtasks||[])];s[i]={...s[i],done:!s[i].done};dbUp('tasks',tid,{subtasks:s})}
+function showStInput(tid){const e=$('st-input-'+tid);if(e)e.style.display='flex'}
+function addSub(tid){const inp=$('st-text-'+tid);const v=inp.value.trim();if(!v)return;const t=S.tasks.find(x=>x.id===tid);dbUp('tasks',tid,{subtasks:[...(t.subtasks||[]),{text:v,done:false}]});inp.value=''}
+
+// Expose to onclick handlers
+window.toggleDone=toggleDone;window.delTask=delTask;window.dupTask=dupTask;
+window.toggleSub=toggleSub;window.showStInput=showStInput;window.addSub=addSub;
+
+// EDIT MODAL
+function openEdit(id){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  $('edit-task-id').value=id;$('edit-task-name').value=t.text;$('edit-task-desc').value=t.description||'';
+  $('edit-task-due').value=t.due||'';$('edit-task-deadline').value=t.deadline||'';
+  $('edit-task-priority').value=t.priority||4;popProj('edit-task-project',t.projectId);
+  renderEditLabels(t.labels||[]);$('edit-modal').classList.add('open')
+}
+window.openEdit=openEdit;
+$('edit-cancel').onclick=()=>$('edit-modal').classList.remove('open');
+$('edit-save').onclick=async()=>{
+  const id=$('edit-task-id').value;
+  const labels=[...$('edit-labels-row').querySelectorAll('.label-tag.selected')].map(l=>l.dataset.name);
+  await dbUp('tasks',id,{text:$('edit-task-name').value.trim(),description:$('edit-task-desc').value.trim(),
+    due:$('edit-task-due').value||null,deadline:$('edit-task-deadline').value||null,
+    priority:+$('edit-task-priority').value,projectId:$('edit-task-project').value,labels});
+  $('edit-modal').classList.remove('open')
+};
+$('edit-delete').onclick=()=>{const id=$('edit-task-id').value;showConfirm('Delete this task?',async()=>{await dbDel('tasks',id);$('edit-modal').classList.remove('open')})};
+
+// PROJECT MODAL
+function openProjModal(id){
+  $('project-edit-id').value=id||'';$('project-modal-title').textContent=id?'Edit project':'New project';
+  $('project-delete-btn').style.display=id?'inline-block':'none';
+  if(id){const p=S.projects.find(x=>x.id===id);$('project-name-input').value=p?p.name:'';
+    document.querySelectorAll('.colour-swatch').forEach(s=>s.classList.toggle('selected',s.dataset.c===(p&&p.colour)))}
+  else{$('project-name-input').value='';document.querySelectorAll('.colour-swatch').forEach((s,i)=>s.classList.toggle('selected',i===0))}
+  $('project-modal').classList.add('open')
+}
+window.openProjModal=openProjModal;
+$('add-project-btn').onclick=()=>openProjModal();$('add-project-link').onclick=()=>openProjModal();
+$('project-cancel').onclick=()=>$('project-modal').classList.remove('open');
+$('project-save').onclick=async()=>{
+  const n=$('project-name-input').value.trim();if(!n)return;
+  const c=document.querySelector('.colour-swatch.selected')?.dataset.c||COLOURS[0];
+  const id=$('project-edit-id').value;
+  if(id)await dbUp('projects',id,{name:n,colour:c});else await dbAdd('projects',{name:n,colour:c});
+  $('project-modal').classList.remove('open')
+};
+$('project-delete-btn').onclick=()=>{
+  const id=$('project-edit-id').value;
+  showConfirm('Delete project? Tasks move to Inbox.',async()=>{
+    for(const t of S.tasks.filter(t=>t.projectId===id))await dbUp('tasks',t.id,{projectId:'inbox'});
+    await dbDel('projects',id);$('project-modal').classList.remove('open');
+    if(S.view==='project'&&S.projId===id)switchView('inbox')
+  })
+};
+
+// LABEL MODAL
+function openLabelModal(id){
+  $('label-edit-id').value=id||'';$('label-modal-title').textContent=id?'Edit label':'New label';
+  $('label-delete-btn').style.display=id?'inline-block':'none';
+  if(id){const l=S.labels.find(x=>x.id===id);$('label-name-input').value=l?l.name:''}
+  else $('label-name-input').value='';
+  $('label-modal').classList.add('open')
+}
+window.openLabelModal=openLabelModal;
+$('add-label-btn').onclick=()=>openLabelModal();$('add-label-link').onclick=()=>openLabelModal();
+$('label-cancel').onclick=()=>$('label-modal').classList.remove('open');
+$('label-save').onclick=async()=>{
+  const n=$('label-name-input').value.trim();if(!n)return;
+  const id=$('label-edit-id').value;
+  if(id){const old=S.labels.find(x=>x.id===id);if(old&&old.name!==n){for(const t of S.tasks){if((t.labels||[]).includes(old.name)){const nl=t.labels.map(l=>l===old.name?n:l);await dbUp('tasks',t.id,{labels:nl})}}await dbUp('labels',id,{name:n})}else await dbUp('labels',id,{name:n})}
+  else{if(!S.labels.find(l=>l.name===n))await dbAdd('labels',{name:n})}
+  $('label-modal').classList.remove('open')
+};
+$('label-delete-btn').onclick=()=>{
+  const id=$('label-edit-id').value;const l=S.labels.find(x=>x.id===id);
+  showConfirm('Delete label "'+((l&&l.name)||'')+'"?',async()=>{
+    if(l)for(const t of S.tasks){if((t.labels||[]).includes(l.name))await dbUp('tasks',t.id,{labels:t.labels.filter(x=>x!==l.name)})}
+    await dbDel('labels',id);$('label-modal').classList.remove('open');
+    if(S.view==='label'&&S.labelName===(l&&l.name))switchView('inbox')
+  })
+};
+
+// CONFIRM
+let cfCb=null;
+function showConfirm(m,cb){$('confirm-msg').textContent=m;cfCb=cb;$('confirm-dialog').classList.add('open')}
+$('confirm-cancel').onclick=()=>{$('confirm-dialog').classList.remove('open');cfCb=null};
+$('confirm-ok').onclick=()=>{if(cfCb)cfCb();$('confirm-dialog').classList.remove('open');cfCb=null};
+
+// COLOURS
+function buildColours(){$('colour-grid').innerHTML=COLOURS.map((c,i)=>`<div class="colour-swatch${i===0?' selected':''}" data-c="${c}" style="background:${c}"></div>`).join('')}
+$('colour-grid').onclick=e=>{const s=e.target.closest('.colour-swatch');if(s){document.querySelectorAll('.colour-swatch').forEach(x=>x.classList.remove('selected'));s.classList.add('selected')}};
+
+// PILLS
+function updPills(){
+  $('pill-due-text').textContent=$('new-task-due').value?relDate($('new-task-due').value):'Due date';
+  const p=$('new-task-priority').value;$('pill-pri-text').textContent=p==='4'?'Priority':'P'+p;
+  const sel=$('new-task-project');$('pill-proj-text').textContent=sel.options[sel.selectedIndex]?.text||'Inbox';
+  $('pill-dl-text').textContent=$('new-task-deadline').value?relDate($('new-task-deadline').value):'Deadline'
+}
+$('new-task-due').onchange=updPills;$('new-task-priority').onchange=updPills;$('new-task-project').onchange=updPills;$('new-task-deadline').onchange=updPills;
+
+// ADD PANEL
+function openAdd(){$('add-panel').classList.add('open');$('quick-add').style.display='none';popProj('new-task-project',S.view==='project'?S.projId:'inbox');renderAddLabels();updPills();$('new-task-name').focus()}
+function closeAdd(){$('add-panel').classList.remove('open');$('quick-add').style.display=''}
+$('quick-add').onclick=openAdd;$('cancel-add').onclick=closeAdd;
+$('hamburger-btn').onclick=()=>{$('sidebar').classList.toggle('open');$('sidebar-overlay').classList.toggle('open')};
+$('sidebar-overlay').onclick=()=>{$('sidebar').classList.remove('open');$('sidebar-overlay').classList.remove('open')};
+
+function popProj(id,sel){const e=$(id);e.innerHTML='<option value="inbox">Inbox</option>'+S.projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');e.value=sel||'inbox'}
+function renderAddLabels(){$('add-labels-row').innerHTML=S.labels.map(l=>`<span class="label-tag" data-name="${esc(l.name)}">\u{1F3F7} ${esc(l.name)}</span>`).join('')}
+function renderEditLabels(sel){$('edit-labels-row').innerHTML=S.labels.map(l=>`<span class="label-tag${sel.includes(l.name)?' selected':''}" data-name="${esc(l.name)}">\u{1F3F7} ${esc(l.name)}</span>`).join('')}
+document.addEventListener('click',e=>{const t=e.target.closest('.label-tag');if(t&&(t.closest('#add-labels-row')||t.closest('#edit-labels-row')))t.classList.toggle('selected')});
+
+// NAVIGATION
+function switchView(v,extra){
+  S.view=v;S.projId=v==='project'?extra:null;S.labelName=v==='label'?extra:null;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.view===v));
+  document.querySelectorAll('.project-item').forEach(n=>n.classList.toggle('active',v==='project'&&n.dataset.id===extra));
+  document.querySelectorAll('.label-item').forEach(n=>n.classList.toggle('active',v==='label'&&n.dataset.name===extra));
+  closeAdd();renderMain();if(window.innerWidth<=680){$('sidebar').classList.remove('open');$('sidebar-overlay').classList.remove('open')}
+}
+window.switchView=switchView;
+document.querySelectorAll('.nav-item').forEach(n=>n.onclick=()=>switchView(n.dataset.view));
+
+// RENDER
+function renderAll(){renderSidebar();renderMain()}
+
+function renderSidebar(){
+  const T=S.tasks;
+  const ic=T.filter(t=>!t.done&&t.projectId==='inbox').length;
+  const tc=T.filter(t=>!t.done&&t.due&&(isToday(t.due)||isOverdue(t.due))).length;
+  const uc=T.filter(t=>{if(t.done||!t.due)return false;const d=dayDiff(new Date(),t.due);return d>=0&&d<=7}).length;
+  const cc=T.filter(t=>t.done).length;
+  $('cnt-inbox').textContent=ic||'';$('cnt-today').textContent=tc||'';$('cnt-upcoming').textContent=uc||'';$('cnt-completed').textContent=cc||'';
+
+  $('projects-list').innerHTML=S.projects.map(p=>{
+    const c=T.filter(t=>!t.done&&t.projectId===p.id).length;
+    return `<div class="project-item${S.view==='project'&&S.projId===p.id?' active':''}" data-id="${p.id}" oncontextmenu="event.preventDefault();openProjModal('${p.id}')">
+      <div class="project-dot" style="background:${p.colour}"></div>${esc(p.name)}<span class="count">${c||''}</span></div>`
+  }).join('');
+  document.querySelectorAll('.project-item').forEach(n=>n.onclick=()=>switchView('project',n.dataset.id));
+
+  $('labels-list').innerHTML=S.labels.map(l=>{
+    const c=T.filter(t=>!t.done&&(t.labels||[]).includes(l.name)).length;
+    return `<div class="label-item${S.view==='label'&&S.labelName===l.name?' active':''}" data-name="${esc(l.name)}" data-id="${l.id}">
+      <span class="nav-icon">\u{1F3F7}</span>${esc(l.name)}<span class="count">${c||''}</span></div>`
+  }).join('');
+  document.querySelectorAll('.label-item').forEach(n=>{
+    n.onclick=()=>switchView('label',n.dataset.name);
+    n.oncontextmenu=e=>{e.preventDefault();openLabelModal(n.dataset.id)}
+  })
+}
+
+function renderMain(){
+  const v=S.view,title=$('view-title'),sub=$('view-subtitle'),list=$('task-list');
+  let tasks=[],html='',subtitle='';
+  if(v==='inbox'){
+    title.textContent='Inbox';tasks=sortT(S.tasks.filter(t=>!t.done&&t.projectId==='inbox'));
+    subtitle=tasks.length+' task'+(tasks.length!==1?'s':'');
+    html=tasks.length?tasks.map(taskH).join(''):emptyH('\u{1F4E5}','Your Inbox is empty')
+  }else if(v==='today'){
+    title.textContent='Today';
+    subtitle=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+    const od=sortT(S.tasks.filter(t=>!t.done&&t.due&&isOverdue(t.due)));
+    const td=sortT(S.tasks.filter(t=>!t.done&&t.due&&isToday(t.due)));
+    if(od.length)html+='<div class="section-header"><span class="overdue-label">Overdue</span></div>'+od.map(taskH).join('');
+    if(td.length)html+='<div class="section-header">Today</div>'+td.map(taskH).join('');
+    if(!od.length&&!td.length)html=emptyH('\u{1F389}','All done for today!')
+  }else if(v==='upcoming'){
+    title.textContent='Upcoming';subtitle='Next 7 days';
+    for(let i=0;i<=7;i++){const d=new Date();d.setDate(d.getDate()+i);d.setHours(0,0,0,0);
+      const dt=sortT(S.tasks.filter(t=>!t.done&&t.due&&sod(new Date(t.due)).getTime()===d.getTime()));
+      if(dt.length)html+='<div class="section-header">'+secDate(d)+'</div>'+dt.map(taskH).join('')}
+    if(!html)html=emptyH('\u{1F4C6}','No upcoming tasks')
+  }else if(v==='completed'){
+    title.textContent='Completed';tasks=S.tasks.filter(t=>t.done).sort((a,b)=>(b.completedAt||0)-(a.completedAt||0));
+    subtitle=tasks.length+' completed';html=tasks.length?tasks.map(taskH).join(''):emptyH('\u2705','No completed tasks yet')
+  }else if(v==='project'){
+    const p=S.projects.find(x=>x.id===S.projId);title.textContent=p?p.name:'Project';
+    tasks=sortT(S.tasks.filter(t=>!t.done&&t.projectId===S.projId));
+    subtitle=tasks.length+' task'+(tasks.length!==1?'s':'');html=tasks.length?tasks.map(taskH).join(''):emptyH('\u{1F4C1}','No tasks in this project')
+  }else if(v==='label'){
+    title.textContent=S.labelName||'Label';tasks=sortT(S.tasks.filter(t=>!t.done&&(t.labels||[]).includes(S.labelName)));
+    subtitle=tasks.length+' task'+(tasks.length!==1?'s':'');html=tasks.length?tasks.map(taskH).join(''):emptyH('\u{1F3F7}','No tasks with this label')
+  }
+  sub.textContent=subtitle;list.innerHTML=html
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+function taskH(t){
+  const pc=t.priority===1?'p1':t.priority===2?'p2':t.priority===3?'p3':'';
+  const dn=t.done?' done':'',p1b=t.priority===1&&!t.done?' p1-border':'';
+  let ch='';
+  if(t.due){const dc=dueClass(t.due);ch+=`<span class="chip chip-due ${dc}">\u{1F4C5} ${relDate(t.due)}</span>`}
+  if(t.deadline)ch+=`<span class="chip chip-deadline">\u2691 ${relDate(t.deadline)}</span>`;
+  if(t.priority&&t.priority<4)ch+=`<span class="chip chip-priority cp${t.priority}">P${t.priority}</span>`;
+  if(t.projectId&&t.projectId!=='inbox'){const p=S.projects.find(x=>x.id===t.projectId);if(p)ch+=`<span class="chip chip-project"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.colour}"></span> ${esc(p.name)}</span>`}
+  (t.labels||[]).forEach(l=>ch+=`<span class="chip chip-label">\u{1F3F7} ${esc(l)}</span>`);
+  let stH='';
+  if(t.subtasks&&t.subtasks.length){stH='<div class="subtask-list">'+t.subtasks.map((s,i)=>`<div class="subtask-item${s.done?' done':''}"><div class="priority-circle" onclick="toggleSub('${t.id}',${i})">${s.done?'\u2713':''}</div><span class="subtask-text">${esc(s.text)}</span></div>`).join('')+'</div>'}
+  return `<div class="task-item${dn}${p1b}">
+    <div class="priority-circle ${pc}" onclick="toggleDone('${t.id}')">${t.done?'\u2713':''}</div>
+    <div class="task-body"><div class="task-text">${esc(t.text)}</div>${t.description?`<div class="task-desc">${esc(t.description)}</div>`:''}${ch?`<div class="task-chips">${ch}</div>`:''}${stH}
+      <div class="add-subtask-btn" onclick="showStInput('${t.id}')">+ Add subtask</div>
+      <div class="subtask-inline" id="st-input-${t.id}" style="display:none;padding-left:0"><input type="text" id="st-text-${t.id}" placeholder="Subtask name" onkeydown="if(event.key==='Enter')addSub('${t.id}')"><button class="btn-add" onclick="addSub('${t.id}')" style="font-size:11px;padding:4px 10px">Add</button></div>
+    </div>
+    <div class="task-actions"><button onclick="openEdit('${t.id}')" title="Edit">\u270F\uFE0F</button><button onclick="dupTask('${t.id}')" title="Duplicate">\u{1F4CB}</button><button onclick="delTask('${t.id}')" title="Delete">\u{1F5D1}\uFE0F</button></div></div>`
+}
+
+function emptyH(i,m){return `<div class="empty-state"><div class="e-icon">${i}</div><p>${m}</p></div>`}
+
+// KEYBOARD
+let gP=false;
+document.addEventListener('keydown',e=>{
+  const tag=e.target.tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'){
+    if(e.key==='Escape'){closeAdd();$('edit-modal').classList.remove('open');e.target.blur()}
+    if(e.key==='Enter'&&$('add-panel').classList.contains('open')&&e.target.id==='new-task-name'){e.preventDefault();$('btn-add-task').click()}
+    return
+  }
+  if(e.key==='q'||e.key==='Q'){e.preventDefault();openAdd()}
+  if(e.key==='Escape'){closeAdd();$('edit-modal').classList.remove('open');$('project-modal').classList.remove('open');$('label-modal').classList.remove('open');$('confirm-dialog').classList.remove('open')}
+  if(e.key==='g'||e.key==='G'){gP=true;setTimeout(()=>gP=false,800);return}
+  if(gP){if(e.key==='i'||e.key==='I')switchView('inbox');if(e.key==='t'||e.key==='T')switchView('today');if(e.key==='u'||e.key==='U')switchView('upcoming');gP=false}
+});
+</script>
+</body>
+</html>

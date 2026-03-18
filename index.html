@@ -312,12 +312,13 @@ async function initFB(){
     await migrateCollection('projects');
     await migrateCollection('labels');
     if(migrated){localStorage.removeItem('tasks');localStorage.removeItem('projects');localStorage.removeItem('labels');console.log('[Sync] localStorage cleared after migration')}
-    // Real-time listeners
-    F.onSnapshot(F.collection(db,'tasks'),s=>{S.tasks=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()});
-    F.onSnapshot(F.collection(db,'projects'),s=>{S.projects=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()});
-    F.onSnapshot(F.collection(db,'labels'),s=>{S.labels=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()});
+    // Real-time listeners with error callbacks
+    const onErr=(name)=>(err)=>{console.error(`[Sync] ${name} listener error:`,err);setSyncStatus(false)};
+    F.onSnapshot(F.collection(db,'tasks'),s=>{S.tasks=s.docs.map(d=>({id:d.id,...d.data()}));setSyncStatus(true);renderAll()},onErr('tasks'));
+    F.onSnapshot(F.collection(db,'projects'),s=>{S.projects=s.docs.map(d=>({id:d.id,...d.data()}));setSyncStatus(true);renderAll()},onErr('projects'));
+    F.onSnapshot(F.collection(db,'labels'),s=>{S.labels=s.docs.map(d=>({id:d.id,...d.data()}));setSyncStatus(true);renderAll()},onErr('labels'));
     setSyncStatus(true);
-  }catch(e){console.warn('[Sync] Firebase init failed, using localStorage fallback:',e);setSyncStatus(false)}
+  }catch(e){console.error('[Sync] Firebase init failed:',e);setSyncStatus(false)}
 }
 
 function lsG(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch{return[]}}
@@ -362,15 +363,15 @@ function sortT(a){return[...a].sort((x,y)=>{if(x.priority!==y.priority)return x.
 
 // CRUD
 async function dbAdd(c,d){
-  if(useFB){const F=window._F;return(await F.addDoc(F.collection(db,c),d)).id}
+  if(useFB){try{const F=window._F;return(await F.addDoc(F.collection(db,c),d)).id}catch(e){console.error('[Sync] Write failed:',e);setSyncStatus(false);throw e}}
   const id=uuid(),a=lsG(c);a.push({id,...d});lsS(c,a);S[c]=a;renderAll();return id
 }
 async function dbUp(c,id,d){
-  if(useFB){const F=window._F;await F.updateDoc(F.doc(db,c,id),d);return}
+  if(useFB){try{const F=window._F;await F.updateDoc(F.doc(db,c,id),d);return}catch(e){console.error('[Sync] Update failed:',e);setSyncStatus(false);throw e}}
   const a=lsG(c),i=a.findIndex(x=>x.id===id);if(i>=0){Object.assign(a[i],d);lsS(c,a);S[c]=a;renderAll()}
 }
 async function dbDel(c,id){
-  if(useFB){const F=window._F;await F.deleteDoc(F.doc(db,c,id));return}
+  if(useFB){try{const F=window._F;await F.deleteDoc(F.doc(db,c,id));return}catch(e){console.error('[Sync] Delete failed:',e);setSyncStatus(false);throw e}}
   const a=lsG(c).filter(x=>x.id!==id);lsS(c,a);S[c]=a;renderAll()
 }
 

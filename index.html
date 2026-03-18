@@ -39,6 +39,10 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
 .sidebar-logo{color:#fff;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
 .lock-btn{background:none;border:none;color:var(--sidebar-muted);cursor:pointer;font-size:16px;padding:6px 8px;border-radius:6px;transition:all .15s}
 .lock-btn:hover{background:var(--sidebar-hover);color:#fff}
+.sync-indicator{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sidebar-muted);padding:4px 10px;font-weight:500}
+.sync-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sync-dot.synced{background:#058527;box-shadow:0 0 6px rgba(5,133,39,.5)}
+.sync-dot.local{background:#ff9a14;box-shadow:0 0 6px rgba(255,154,20,.4)}
 .nav-section{padding:4px 8px}
 .nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;color:var(--sidebar-text);font-size:14px;font-weight:500;cursor:pointer;transition:background .15s}
 .nav-item:hover{background:var(--sidebar-hover)}
@@ -191,7 +195,10 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
   <aside id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo"><span>&#x1F4CB;</span> Tasks</div>
-      <button class="lock-btn" id="lock-btn" title="Lock">&#x1F512;</button>
+      <div style="display:flex;align-items:center;gap:4px">
+        <div class="sync-indicator" id="sync-indicator"><span class="sync-dot local" id="sync-dot"></span><span id="sync-text">Local</span></div>
+        <button class="lock-btn" id="lock-btn" title="Lock">&#x1F512;</button>
+      </div>
     </div>
     <nav class="nav-section">
       <div class="nav-item active" data-view="inbox"><span class="nav-icon">&#x1F4E5;</span>Inbox<span class="count" id="cnt-inbox"></span></div>
@@ -272,16 +279,45 @@ const COLOURS=['#db4035','#ff9a14','#ffd43b','#7bc86c','#058527','#299438','#6ac
 const firebaseConfig={apiKey:"AIzaSyBEjo9Gg_i1p-KLanfiqhyYuGohj6mYGnQ",authDomain:"tasks-877ab.firebaseapp.com",projectId:"tasks-877ab",storageBucket:"tasks-877ab.firebasestorage.app",messagingSenderId:"906342109181",appId:"1:906342109181:web:33cb53b35caf4ed5601394",measurementId:"G-M461W00CY0"};
 
 let db,useFB=false;
+function setSyncStatus(ok){
+  const dot=$('sync-dot'),txt=$('sync-text');
+  if(ok){dot.className='sync-dot synced';txt.textContent='Synced'}
+  else{dot.className='sync-dot local';txt.textContent='Local'}
+}
 async function initFB(){
   try{
+    console.log('[Sync] Connecting to Firebase...');
     const{initializeApp}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
     const F=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-    if(firebaseConfig.apiKey==='YOUR_API_KEY'){console.warn('Firebase not configured, using localStorage');return}
+    if(firebaseConfig.apiKey==='YOUR_API_KEY'){console.warn('[Sync] Firebase not configured, using localStorage');setSyncStatus(false);return}
     const app=initializeApp(firebaseConfig);db=F.getFirestore(app);useFB=true;window._F=F;
+    console.log('[Sync] Firebase connected successfully');
+    // Migrate localStorage data to Firebase (one-time)
+    let migrated=false;
+    const migrateCollection=async(name)=>{
+      const local=lsG(name);
+      if(!local.length)return;
+      const snap=await F.getDocs(F.collection(db,name));
+      if(snap.empty){
+        console.log(`[Sync] Migrating ${local.length} ${name} from localStorage to Firebase...`);
+        for(const item of local){
+          const{id,...data}=item;
+          await F.addDoc(F.collection(db,name),data);
+        }
+        migrated=true;
+        console.log(`[Sync] Migrated ${name} successfully`);
+      }
+    };
+    await migrateCollection('tasks');
+    await migrateCollection('projects');
+    await migrateCollection('labels');
+    if(migrated){localStorage.removeItem('tasks');localStorage.removeItem('projects');localStorage.removeItem('labels');console.log('[Sync] localStorage cleared after migration')}
+    // Real-time listeners
     F.onSnapshot(F.collection(db,'tasks'),s=>{S.tasks=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()});
     F.onSnapshot(F.collection(db,'projects'),s=>{S.projects=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()});
     F.onSnapshot(F.collection(db,'labels'),s=>{S.labels=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()});
-  }catch(e){console.warn('Firebase init failed, localStorage fallback',e)}
+    setSyncStatus(true);
+  }catch(e){console.warn('[Sync] Firebase init failed, using localStorage fallback:',e);setSyncStatus(false)}
 }
 
 function lsG(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch{return[]}}

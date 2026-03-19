@@ -447,11 +447,13 @@ let newAttachments=[];
 $('btn-add-task').onclick=async()=>{
   const n=$('new-task-name').value.trim();if(!n)return;
   const labels=[...$('add-labels-row').querySelectorAll('.label-tag.selected')].map(l=>l.dataset.name);
-  await dbAdd('tasks',{text:n,description:$('new-task-desc').value.trim(),done:false,
+  const tData={text:n,description:$('new-task-desc').value.trim(),done:false,
     priority:+$('new-task-priority').value,projectId:$('new-task-project').value,
     labels,due:$('new-task-due').value||null,deadline:$('new-task-deadline').value||null,
     attachments:newAttachments.length?[...newAttachments]:[],
-    subtasks:[],createdAt:Date.now(),completedAt:null});
+    subtasks:[],createdAt:Date.now(),completedAt:null};
+  await dbAdd('tasks',tData);
+  if(tData.due) gcalSync(tData);
   $('new-task-name').value='';$('new-task-desc').value='';$('new-task-due').value='';
   $('new-task-deadline').value='';$('new-task-priority').value='4';
   $('add-labels-row').querySelectorAll('.label-tag').forEach(l=>l.classList.remove('selected'));
@@ -487,10 +489,12 @@ $('edit-cancel').onclick=()=>$('edit-modal').classList.remove('open');
 $('edit-save').onclick=async()=>{
   const id=$('edit-task-id').value;
   const labels=[...$('edit-labels-row').querySelectorAll('.label-tag.selected')].map(l=>l.dataset.name);
-  await dbUp('tasks',id,{text:$('edit-task-name').value.trim(),description:$('edit-task-desc').value.trim(),
+  const tData={text:$('edit-task-name').value.trim(),description:$('edit-task-desc').value.trim(),
     due:$('edit-task-due').value||null,deadline:$('edit-task-deadline').value||null,
     priority:+$('edit-task-priority').value,projectId:$('edit-task-project').value,labels,
-    attachments:editAttachments.length?[...editAttachments]:[]});
+    attachments:editAttachments.length?[...editAttachments]:[]};
+  await dbUp('tasks',id,tData);
+  if(tData.due) gcalSync(tData);
   $('edit-modal').classList.remove('open')
 };
 $('edit-delete').onclick=()=>{const id=$('edit-task-id').value;showConfirm('Delete this task?',async()=>{await dbDel('tasks',id);$('edit-modal').classList.remove('open')})};

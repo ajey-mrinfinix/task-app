@@ -99,10 +99,10 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
 .task-item.p1-border{border-left:3px solid var(--p1);padding-left:10px}
 .task-item.done{opacity:.45}
 .task-item.done .task-text{text-decoration:line-through}
-.priority-circle{width:20px;height:20px;border-radius:50%;border:2px solid var(--p4);cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all .2s}
-.priority-circle:hover{background:rgba(0,0,0,.06);transform:scale(1.1)}
+.priority-circle{width:22px;height:22px;border-radius:4px;border:2px solid var(--p4);cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;transition:all .2s}
+.priority-circle:hover{background:rgba(255,255,255,0.06);border-color:var(--accent)}
 .priority-circle.p1{border-color:var(--p1)}.priority-circle.p2{border-color:var(--p2)}.priority-circle.p3{border-color:var(--p3)}
-.task-item.done .priority-circle{background:var(--green-complete);border-color:var(--green-complete);color:#fff}
+.task-item.done .priority-circle{background:var(--accent);border-color:var(--accent);color:#111}
 .task-body{margin-left:10px;flex:1;min-width:0}
 .task-text{font-size:14px;font-weight:500;color:var(--text-primary);word-break:break-word}
 .task-desc{font-size:13px;color:var(--text-muted);margin-top:2px;word-break:break-word}
@@ -159,6 +159,9 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
 .fs-input-container{flex:1;display:flex;align-items:center;min-width:0}
 .fs-input{width:100%;background:transparent;border:none;color:var(--text-primary);font-size:15px;outline:none;font-family:inherit;color-scheme:dark}
 .fs-input::placeholder{color:var(--text-muted)}
+.fs-input option{background-color:var(--sidebar-bg);color:var(--text-primary)}
+.fs-icon-svg{width:20px;height:20px;fill:var(--text-muted);display:flex;align-items:center;justify-content:center}
+.fs-value.empty{color:var(--text-muted);font-size:15px}
 /* COLOUR PICKER */
 .colour-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .colour-swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s}
@@ -331,15 +334,15 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
           <button class="save" id="btn-add-task">Save</button>
         </div>
         <div class="fs-content">
-          <div class="fs-row" style="padding-top:0"><div class="fs-icon">&#x25A2;</div><div class="fs-input-container"><input type="text" class="fs-input" id="new-task-name" placeholder="Task name" style="font-size:18px"></div></div>
-          <div class="fs-row"><div class="fs-icon">&#x1f558;</div><div class="fs-input-container"><input type="datetime-local" class="fs-input" id="new-task-due"></div></div>
-          <div class="fs-row"><div class="fs-icon">&#x2691;</div><div class="fs-input-container"><input type="datetime-local" class="fs-input" id="new-task-deadline"></div></div>
-          <div class="fs-row"><div class="fs-icon">&#x1F3F4;</div><div class="fs-input-container" style="gap:16px"><span style="color:var(--text-muted);font-size:15px">Priority</span><select class="fs-input" id="new-task-priority" style="width:auto;border:1px solid var(--border);padding:4px 8px;border-radius:8px"><option value="4">None</option><option value="1">High</option><option value="2">Medium</option><option value="3">Low</option></select></div></div>
-          <div class="fs-row"><div class="fs-icon">&#x2630;</div><div class="fs-input-container"><select class="fs-input" id="new-task-project" style="width:auto;border:1px solid var(--border);padding:4px 8px;border-radius:8px"><option value="inbox">Inbox</option></select></div></div>
-          <div class="fs-row"><div class="fs-icon">&#x1F3F7;&#xFE0F;</div><div class="fs-input-container" style="flex-direction:column;align-items:flex-start"><span style="color:var(--text-muted);font-size:15px;margin-bottom:8px">Add tags</span><div id="add-labels-row" class="labels-container" style="margin:0"></div></div></div>
-          <div class="fs-row"><div class="fs-icon">&#x2261;</div><div class="fs-input-container"><textarea class="fs-input" id="new-task-desc" placeholder="Description" rows="1"></textarea></div></div>
-          <div class="fs-row"><div class="fs-icon">&#x1F517;</div><div class="fs-input-container"><input type="text" class="fs-input" id="new-task-link" placeholder="Add link URL"></div></div>
-          <div class="fs-row" onclick="document.getElementById('new-task-files').click()"><div class="fs-icon">&#x1F4CE;</div><div class="fs-value empty">Add attachment</div><input type="file" id="new-task-files" multiple style="display:none" onchange="handleNewFiles(this)"></div>
+          <div class="fs-row" style="padding-top:0"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg></div></div><div class="fs-input-container"><input type="text" class="fs-input" id="new-task-name" placeholder="Task name" style="font-size:18px"></div></div>
+          <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></div></div><div class="fs-input-container"><input type="datetime-local" class="fs-input" id="new-task-due"></div></div>
+          <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg></div></div><div class="fs-input-container"><input type="datetime-local" class="fs-input" id="new-task-deadline"></div></div>
+          <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg></div></div><div class="fs-input-container" style="gap:16px"><span style="color:var(--text-muted);font-size:15px">Priority</span><select class="fs-input" id="new-task-priority" style="width:auto;border:1px solid var(--border);padding:4px 8px;border-radius:8px"><option value="4">None</option><option value="1">High</option><option value="2">Medium</option><option value="3">Low</option></select></div></div>
+          <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></div></div><div class="fs-input-container"><select class="fs-input" id="new-task-project" style="width:auto;border:1px solid var(--border);padding:4px 8px;border-radius:8px"><option value="inbox">Inbox</option></select></div></div>
+          <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M17.63 5.84C17.27 5.33 16.67 5 16 5L5 5.01C3.9 5.01 3 5.9 3 7v10c0 1.1.9 1.99 2 1.99L16 19c.67 0 1.27-.33 1.63-.84L22 12l-4.37-6.16zM16 17H5V7h11l3.55 5L16 17z"/><circle cx="13" cy="12" r="1.5"/></svg></div></div><div class="fs-input-container" style="flex-direction:column;align-items:flex-start"><span style="color:var(--text-muted);font-size:15px;margin-bottom:8px">Add tags</span><div id="add-labels-row" class="labels-container" style="margin:0"></div></div></div>
+          <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M14 17H4v2h10v-2zm6-8H4v2h16V9zM4 15h16v-2H4v2zM4 5v2h16V5H4z"/></svg></div></div><div class="fs-input-container"><textarea class="fs-input" id="new-task-desc" placeholder="Description" rows="1"></textarea></div></div>
+          <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg></div></div><div class="fs-input-container"><input type="text" class="fs-input" id="new-task-link" placeholder="Add link URL"></div></div>
+          <div class="fs-row" onclick="document.getElementById('new-task-files').click()"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M16.5 6V17.5c0 2.48-2.02 4.5-4.5 4.5s-4.5-2.02-4.5-4.5V5c0-1.66 1.34-3 3-3s3 1.34 3 3v11.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5V6H9v11.5c0 2.48 2.02 4.5 4.5 4.5s4.5-2.02 4.5-4.5V5c0-3.31-2.69-6-6-6s-6 2.69-6 6v12.5c0 4.14 3.36 7.5 7.5 7.5s7.5-3.36 7.5-7.5V6h-1.5z"/></svg></div></div><div class="fs-value empty">Add attachment</div><input type="file" id="new-task-files" multiple style="display:none" onchange="handleNewFiles(this)"></div>
           <div id="new-attach-preview" class="attach-preview" style="padding-left:40px"></div>
         </div>
       </div>
@@ -355,15 +358,15 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
   </div>
   <div class="fs-content">
     <input type="hidden" id="edit-task-id">
-    <div class="fs-row" style="padding-top:0"><div class="fs-icon">&#x25A2;</div><div class="fs-input-container"><input type="text" class="fs-input" id="edit-task-name" placeholder="Task name" style="font-size:18px"></div></div>
-    <div class="fs-row"><div class="fs-icon">&#x1f558;</div><div class="fs-input-container"><input type="datetime-local" class="fs-input" id="edit-task-due"></div></div>
-    <div class="fs-row"><div class="fs-icon">&#x2691;</div><div class="fs-input-container"><input type="datetime-local" class="fs-input" id="edit-task-deadline"></div></div>
-    <div class="fs-row"><div class="fs-icon">&#x1F3F4;</div><div class="fs-input-container" style="gap:16px"><span style="color:var(--text-muted);font-size:15px">Priority</span><select class="fs-input" id="edit-task-priority" style="width:auto;border:1px solid var(--border);padding:4px 8px;border-radius:8px"><option value="4">None</option><option value="1">High</option><option value="2">Medium</option><option value="3">Low</option></select></div></div>
-    <div class="fs-row"><div class="fs-icon">&#x2630;</div><div class="fs-input-container"><select class="fs-input" id="edit-task-project" style="width:auto;border:1px solid var(--border);padding:4px 8px;border-radius:8px"><option value="inbox">Inbox</option></select></div></div>
-    <div class="fs-row"><div class="fs-icon">&#x1F3F7;&#xFE0F;</div><div class="fs-input-container" style="flex-direction:column;align-items:flex-start"><span style="color:var(--text-muted);font-size:15px;margin-bottom:8px">Add tags</span><div id="edit-labels-row" class="labels-container" style="margin:0"></div></div></div>
-    <div class="fs-row"><div class="fs-icon">&#x2261;</div><div class="fs-input-container"><textarea class="fs-input" id="edit-task-desc" placeholder="Description" rows="1"></textarea></div></div>
-    <div class="fs-row"><div class="fs-icon">&#x1F517;</div><div class="fs-input-container"><input type="text" class="fs-input" id="edit-task-link" placeholder="Add link URL"></div></div>
-    <div class="fs-row" onclick="document.getElementById('edit-task-files').click()"><div class="fs-icon">&#x1F4CE;</div><div class="fs-value empty">Add attachment</div><input type="file" id="edit-task-files" multiple style="display:none" onchange="handleEditFiles(this)"></div>
+    <div class="fs-row" style="padding-top:0"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg></div></div><div class="fs-input-container"><input type="text" class="fs-input" id="edit-task-name" placeholder="Task name" style="font-size:18px"></div></div>
+    <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></div></div><div class="fs-input-container"><input type="datetime-local" class="fs-input" id="edit-task-due"></div></div>
+    <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg></div></div><div class="fs-input-container"><input type="datetime-local" class="fs-input" id="edit-task-deadline"></div></div>
+    <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg></div></div><div class="fs-input-container" style="gap:16px"><span style="color:var(--text-muted);font-size:15px">Priority</span><select class="fs-input" id="edit-task-priority" style="width:auto;border:1px solid var(--border);padding:4px 8px;border-radius:8px"><option value="4">None</option><option value="1">High</option><option value="2">Medium</option><option value="3">Low</option></select></div></div>
+    <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></div></div><div class="fs-input-container"><select class="fs-input" id="edit-task-project" style="width:auto;border:1px solid var(--border);padding:4px 8px;border-radius:8px"><option value="inbox">Inbox</option></select></div></div>
+    <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M17.63 5.84C17.27 5.33 16.67 5 16 5L5 5.01C3.9 5.01 3 5.9 3 7v10c0 1.1.9 1.99 2 1.99L16 19c.67 0 1.27-.33 1.63-.84L22 12l-4.37-6.16zM16 17H5V7h11l3.55 5L16 17z"/><circle cx="13" cy="12" r="1.5"/></svg></div></div><div class="fs-input-container" style="flex-direction:column;align-items:flex-start"><span style="color:var(--text-muted);font-size:15px;margin-bottom:8px">Add tags</span><div id="edit-labels-row" class="labels-container" style="margin:0"></div></div></div>
+    <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M14 17H4v2h10v-2zm6-8H4v2h16V9zM4 15h16v-2H4v2zM4 5v2h16V5H4z"/></svg></div></div><div class="fs-input-container"><textarea class="fs-input" id="edit-task-desc" placeholder="Description" rows="1"></textarea></div></div>
+    <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg></div></div><div class="fs-input-container"><input type="text" class="fs-input" id="edit-task-link" placeholder="Add link URL"></div></div>
+    <div class="fs-row" onclick="document.getElementById('edit-task-files').click()"><div class="fs-icon"><div class="fs-icon-svg"><svg viewBox="0 0 24 24"><path d="M16.5 6V17.5c0 2.48-2.02 4.5-4.5 4.5s-4.5-2.02-4.5-4.5V5c0-1.66 1.34-3 3-3s3 1.34 3 3v11.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5V6H9v11.5c0 2.48 2.02 4.5 4.5 4.5s4.5-2.02 4.5-4.5V5c0-3.31-2.69-6-6-6s-6 2.69-6 6v12.5c0 4.14 3.36 7.5 7.5 7.5s7.5-3.36 7.5-7.5V6h-1.5z"/></svg></div></div><div class="fs-value empty">Add attachment</div><input type="file" id="edit-task-files" multiple style="display:none" onchange="handleEditFiles(this)"></div>
     <div id="edit-attach-preview" class="attach-preview" style="padding-left:40px"></div>
     <div style="padding:16px 0;text-align:center"><button id="edit-delete" style="color:var(--p1);background:none;border:none;font-size:14px;cursor:pointer;padding:8px">Delete Task</button></div>
   </div>
@@ -772,35 +775,88 @@ function renderSidebar(){
   })
 }
 
+function groupTasks(tasks) {
+  const groups = new Map();
+  const now = sod(new Date());
+  const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
+  const nextWeek = new Date(now); nextWeek.setDate(now.getDate() + 7);
+  
+  tasks.forEach(t => {
+    let g = 'No due date';
+    if (t.done) { g = 'Completed'; }
+    else if (t.due) {
+      const d = sod(new Date(t.due));
+      const diff = (d - now) / 86400000;
+      if (diff < 0) g = 'Overdue';
+      else if (diff === 0) g = 'Today';
+      else if (diff === 1) g = 'Tomorrow';
+      else if (diff < 7) g = d.toLocaleDateString('en-GB', { weekday: 'Long' });
+      else g = 'Later';
+    }
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g).push(t);
+  });
+  
+  // Sort group keys in a logical order
+  const order = ['Overdue', 'Today', 'Tomorrow', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Later', 'No due date', 'Completed'];
+  const sorted = new Map();
+  order.forEach(k => { if (groups.has(k)) sorted.set(k, groups.get(k)); });
+  // Add any missed ones (like specific dates if they fall outside order)
+  groups.forEach((v, k) => { if (!sorted.has(k)) sorted.set(k, v); });
+  return sorted;
+}
+
 function renderMain(){
   const v=S.view,title=$('view-title'),sub=$('view-subtitle'),list=$('task-list');
   let tasks=[],html='',subtitle='';
+  
+  if (v === 'calendar') {
+    renderCalendarView(title, sub, list);
+    return;
+  }
+
   if(v==='inbox'){
-    title.textContent='Inbox';tasks=sortT(S.tasks.filter(t=>!t.done&&t.projectId==='inbox'));
-    subtitle=tasks.length+' task'+(tasks.length!==1?'s':'');
-    html=tasks.length?tasks.map(taskH).join(''):emptyH('\u{1F4E5}','Your Inbox is empty')
+    title.textContent='Inbox'; tasks=S.tasks.filter(t=>t.projectId==='inbox');
   }else if(v==='today'){
-    title.textContent='Today';
+    title.textContent='Today'; tasks=S.tasks.filter(t=>t.due && (isToday(t.due) || isOverdue(t.due)));
     subtitle=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
-    const od=sortT(S.tasks.filter(t=>!t.done&&t.due&&isOverdue(t.due)));
-    const td=sortT(S.tasks.filter(t=>!t.done&&t.due&&isToday(t.due)));
-    if(od.length)html+='<div class="section-header"><span class="overdue-label">Overdue</span><span>&#x2304;</span></div>'+od.map(taskH).join('');
-    if(td.length)html+='<div class="section-header"><span>Today</span><span>&#x2304;</span></div>'+td.map(taskH).join('');
-    if(!od.length&&!td.length)html=emptyH('\u{1F389}','All done for today!')
   }else if(v==='upcoming'){
-    title.textContent='Upcoming';subtitle='Next 7 days';
-    for(let i=0;i<=7;i++){const d=new Date();d.setDate(d.getDate()+i);d.setHours(0,0,0,0);
-      const dt=sortT(S.tasks.filter(t=>!t.done&&t.due&&sod(new Date(t.due)).getTime()===d.getTime()));
-      if(dt.length)html+='<div class="section-header"><span>'+secDate(d)+'</span><span>&#x2304;</span></div>'+dt.map(taskH).join('')}
-    if(!html)html=emptyH('\u{1F4C6}','No upcoming tasks')
-  }else if(v==='calendar'){
+    title.textContent='Upcoming'; tasks=S.tasks.filter(t=>t.due); subtitle='Next 7 days';
+  }else if(v==='completed'){
+    title.textContent='Completed'; tasks=S.tasks.filter(t=>t.done);
+  }else if(v==='project'){
+    const p=S.projects.find(x=>x.id===S.projId); title.textContent=p?p.name:'Project';
+    tasks=S.tasks.filter(t=>t.projectId===S.projId);
+  }else if(v==='label'){
+    title.textContent=S.labelName||'Label'; tasks=S.tasks.filter(t=>(t.labels||[]).includes(S.labelName));
+  }
+
+  const grouped = groupTasks(tasks);
+  if (tasks.length === 0) {
+    html = emptyH('\u{1F4CB}', 'No tasks found');
+  } else {
+    grouped.forEach((groupTasks, groupName) => {
+      html += `<div class="section-header"><span>${groupName}</span><span>&#x2304;</span></div>`;
+      html += groupTasks.map(taskH).join('');
+    });
+  }
+
+  if (!subtitle && v !== 'today') {
+    const activeTasks = tasks.filter(t=>!t.done).length;
+    subtitle = activeTasks + ' task' + (activeTasks !== 1 ? 's' : '');
+  }
+  
+  sub.textContent=subtitle; list.innerHTML=html;
+}
+
+function renderCalendarView(title, sub, list) {
     title.textContent='Calendar';
     const d=new Date(S.calYear||new Date().getFullYear(), S.calMonth||new Date().getMonth(), 1);
     S.calYear=d.getFullYear();S.calMonth=d.getMonth();
-    subtitle=MONTHS[d.getMonth()]+' '+d.getFullYear();
+    let subtitle=MONTHS[d.getMonth()]+' '+d.getFullYear();
     const last=new Date(d.getFullYear(),d.getMonth()+1,0);
     const sd=(d.getDay()+6)%7,today=sod(new Date());
-    html+=`<div class="cv-nav"><button onclick="S.calMonth--;renderAll()">Prev</button><button onclick="S.calMonth=new Date().getMonth();S.calYear=new Date().getFullYear();renderAll()">Today</button><button onclick="S.calMonth++;renderAll()">Next</button></div>`;
+    let html = `<div class="cv-nav"><button onclick="S.calMonth--;renderAll()">Prev</button><button onclick="S.calMonth=new Date().getMonth();S.calYear=new Date().getFullYear();renderAll()">Today</button><button onclick="S.calMonth++;renderAll()">Next</button></div>`;
     html+='<div class="cv-dh-container">'+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div class="cv-dh">${x}</div>`).join('')+'</div><div class="cv-grid">';
     const prev=new Date(d.getFullYear(),d.getMonth(),0);
     for(let i=sd-1;i>=0;i--)html+=`<div class="cv-day other"><span class="cv-d-num">${prev.getDate()-i}</span></div>`;
@@ -817,18 +873,7 @@ function renderMain(){
     }
     const rem=7-((sd+last.getDate())%7);if(rem<7)for(let i=1;i<=rem;i++)html+=`<div class="cv-day other"><span class="cv-d-num">${i}</span></div>`;
     html+='</div>'
-  }else if(v==='completed'){
-    title.textContent='Completed';tasks=S.tasks.filter(t=>t.done).sort((a,b)=>(b.completedAt||0)-(a.completedAt||0));
-    subtitle=tasks.length+' completed';html=tasks.length?tasks.map(taskH).join(''):emptyH('\u2705','No completed tasks yet')
-  }else if(v==='project'){
-    const p=S.projects.find(x=>x.id===S.projId);title.textContent=p?p.name:'Project';
-    tasks=sortT(S.tasks.filter(t=>!t.done&&t.projectId===S.projId));
-    subtitle=tasks.length+' task'+(tasks.length!==1?'s':'');html=tasks.length?tasks.map(taskH).join(''):emptyH('\u{1F4C1}','No tasks in this project')
-  }else if(v==='label'){
-    title.textContent=S.labelName||'Label';tasks=sortT(S.tasks.filter(t=>!t.done&&(t.labels||[]).includes(S.labelName)));
-    subtitle=tasks.length+' task'+(tasks.length!==1?'s':'');html=tasks.length?tasks.map(taskH).join(''):emptyH('\u{1F3F7}','No tasks with this label')
-  }
-  sub.textContent=subtitle;list.innerHTML=html
+    sub.textContent=subtitle; list.innerHTML=html;
 }
 
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}

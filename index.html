@@ -208,6 +208,24 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
 .gcal-btn.connected{color:#058527}
 .gcal-icon{font-size:16px}
 .chip-gcal{background:#e8f5e9;color:#058527}
+/* CALENDAR VIEW */
+.cv-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;margin-bottom:32px}
+.cv-dh{background:var(--bg);padding:8px;font-size:12px;font-weight:600;color:var(--text-muted);text-align:center;border-bottom:1px solid var(--border)}
+.cv-dh-container{display:grid;grid-template-columns:repeat(7,1fr);background:var(--bg);border:1px solid var(--border);border-radius:8px 8px 0 0;margin-top:16px}
+.cv-day{background:var(--bg);min-height:100px;padding:8px;display:flex;flex-direction:column;gap:4px;transition:background .15s}
+.cv-day:hover{background:#fcfcfc}
+.cv-day.other{background:#fafafa;color:var(--text-faint)}
+.cv-day.today .cv-d-num{background:var(--accent);color:#fff;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center}
+.cv-d-num{font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text-primary);display:inline-block}
+.cv-task{background:#fdfdfd;border:1px solid var(--border);border-left:3px solid var(--border-strong);padding:4px 6px;border-radius:4px;font-size:11px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-primary);transition:all .1s}
+.cv-task:hover{box-shadow:0 1px 3px rgba(0,0,0,.1);transform:translateY(-1px)}
+.cv-task.cp1{border-left-color:var(--p1)}
+.cv-task.cp2{border-left-color:var(--p2)}
+.cv-task.cp3{border-left-color:var(--p3)}
+.cv-task.done{opacity:0.6;text-decoration:line-through}
+.cv-nav{display:flex;gap:8px;align-items:center}
+.cv-nav button{background:none;border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;background:var(--bg);font-family:inherit;font-size:13px}
+.cv-nav button:hover{background:#f5f5f5}
 /* RESPONSIVE */
 @media(max-width:680px){
   #sidebar{position:fixed;z-index:850;transform:translateX(-100%);height:100vh}
@@ -249,6 +267,7 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
       <div class="nav-item active" data-view="inbox"><span class="nav-icon">&#x1F4E5;</span>Inbox<span class="count" id="cnt-inbox"></span></div>
       <div class="nav-item" data-view="today"><span class="nav-icon">&#x1F4C5;</span>Today<span class="count" id="cnt-today"></span></div>
       <div class="nav-item" data-view="upcoming"><span class="nav-icon">&#x1F4C6;</span>Upcoming<span class="count" id="cnt-upcoming"></span></div>
+      <div class="nav-item" data-view="calendar"><span class="nav-icon">&#x1F5D3;&#xFE0F;</span>Calendar</div>
       <div class="nav-item" data-view="completed"><span class="nav-icon">&#x2705;</span>Completed<span class="count" id="cnt-completed"></span></div>
     </nav>
     <div class="sidebar-section">
@@ -452,8 +471,8 @@ $('btn-add-task').onclick=async()=>{
     labels,due:$('new-task-due').value||null,deadline:$('new-task-deadline').value||null,
     attachments:newAttachments.length?[...newAttachments]:[],
     subtasks:[],createdAt:Date.now(),completedAt:null};
-  await dbAdd('tasks',tData);
-  if(tData.due) gcalSync(tData);
+  const tid = await dbAdd('tasks',tData);
+  if(tData.due){const eid=await gcalSync(tData);if(eid)await dbUp('tasks',tid,{gcalEventId:eid})}
   $('new-task-name').value='';$('new-task-desc').value='';$('new-task-due').value='';
   $('new-task-deadline').value='';$('new-task-priority').value='4';
   $('add-labels-row').querySelectorAll('.label-tag').forEach(l=>l.classList.remove('selected'));
@@ -462,7 +481,7 @@ $('btn-add-task').onclick=async()=>{
 };
 
 function toggleDone(id){const t=S.tasks.find(x=>x.id===id);if(t)dbUp('tasks',id,{done:!t.done,completedAt:t.done?null:Date.now()})}
-function delTask(id){showConfirm('Delete this task?',()=>dbDel('tasks',id))}
+function delTask(id){const t=S.tasks.find(x=>x.id===id);showConfirm('Delete this task?',async()=>{if(t&&t.gcalEventId)await gcalDelete(t.gcalEventId);dbDel('tasks',id)})}
 function dupTask(id){const t=S.tasks.find(x=>x.id===id);if(t){const{id:_,...d}=t;dbAdd('tasks',{...d,done:false,completedAt:null,createdAt:Date.now()})}}
 function toggleSub(tid,i){const t=S.tasks.find(x=>x.id===tid);if(!t)return;const s=[...(t.subtasks||[])];s[i]={...s[i],done:!s[i].done};dbUp('tasks',tid,{subtasks:s})}
 function showStInput(tid){const e=$('st-input-'+tid);if(e)e.style.display='flex'}
@@ -493,11 +512,17 @@ $('edit-save').onclick=async()=>{
     due:$('edit-task-due').value||null,deadline:$('edit-task-deadline').value||null,
     priority:+$('edit-task-priority').value,projectId:$('edit-task-project').value,labels,
     attachments:editAttachments.length?[...editAttachments]:[]};
+  const oldT=S.tasks.find(x=>x.id===id);
   await dbUp('tasks',id,tData);
-  if(tData.due) gcalSync(tData);
+  if(oldT&&oldT.gcalEventId){
+    if(tData.due)await gcalUpdate(tData,oldT.gcalEventId);
+    else{await gcalDelete(oldT.gcalEventId);await dbUp('tasks',id,{gcalEventId:null})}
+  }else if(tData.due){
+    const eid=await gcalSync(tData);if(eid)await dbUp('tasks',id,{gcalEventId:eid});
+  }
   $('edit-modal').classList.remove('open')
 };
-$('edit-delete').onclick=()=>{const id=$('edit-task-id').value;showConfirm('Delete this task?',async()=>{await dbDel('tasks',id);$('edit-modal').classList.remove('open')})};
+$('edit-delete').onclick=()=>{const id=$('edit-task-id').value;const t=S.tasks.find(x=>x.id===id);showConfirm('Delete this task?',async()=>{if(t&&t.gcalEventId)await gcalDelete(t.gcalEventId);await dbDel('tasks',id);$('edit-modal').classList.remove('open')})};
 
 // PROJECT MODAL
 function openProjModal(id){
@@ -646,6 +671,30 @@ function renderMain(){
       const dt=sortT(S.tasks.filter(t=>!t.done&&t.due&&sod(new Date(t.due)).getTime()===d.getTime()));
       if(dt.length)html+='<div class="section-header">'+secDate(d)+'</div>'+dt.map(taskH).join('')}
     if(!html)html=emptyH('\u{1F4C6}','No upcoming tasks')
+  }else if(v==='calendar'){
+    title.textContent='Calendar';
+    const d=new Date(S.calYear||new Date().getFullYear(), S.calMonth||new Date().getMonth(), 1);
+    S.calYear=d.getFullYear();S.calMonth=d.getMonth();
+    subtitle=MONTHS[d.getMonth()]+' '+d.getFullYear();
+    const last=new Date(d.getFullYear(),d.getMonth()+1,0);
+    const sd=(d.getDay()+6)%7,today=sod(new Date());
+    html+=`<div class="cv-nav"><button onclick="S.calMonth--;renderAll()">Prev</button><button onclick="S.calMonth=new Date().getMonth();S.calYear=new Date().getFullYear();renderAll()">Today</button><button onclick="S.calMonth++;renderAll()">Next</button></div>`;
+    html+='<div class="cv-dh-container">'+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div class="cv-dh">${x}</div>`).join('')+'</div><div class="cv-grid">';
+    const prev=new Date(d.getFullYear(),d.getMonth(),0);
+    for(let i=sd-1;i>=0;i--)html+=`<div class="cv-day other"><span class="cv-d-num">${prev.getDate()-i}</span></div>`;
+    for(let i=1;i<=last.getDate();i++){
+      const dt=new Date(d.getFullYear(),d.getMonth(),i),isTd=dt.getTime()===today.getTime();
+      const dayTasks=S.tasks.filter(t=>t.due&&sod(new Date(t.due)).getTime()===dt.getTime());
+      let th='';
+      dayTasks.forEach(t=>{
+        const pc=t.priority===1?'p1':t.priority===2?'p2':t.priority===3?'p3':'border-strong';
+        const time=t.due&&t.due.includes('T')&&t.due.split('T')[1]!=='23:59'?t.due.split('T')[1]+' ':'';
+        th+=`<div class="cv-task cp${pc}${t.done?' done':''}" onclick="openEdit('${t.id}')" title="${esc(t.text)}">${t.done?'\u2713 ':''}${time}${esc(t.text)}</div>`
+      });
+      html+=`<div class="cv-day${isTd?' today':''}"><span class="cv-d-num">${i}</span>${th}</div>`
+    }
+    const rem=7-((sd+last.getDate())%7);if(rem<7)for(let i=1;i<=rem;i++)html+=`<div class="cv-day other"><span class="cv-d-num">${i}</span></div>`;
+    html+='</div>'
   }else if(v==='completed'){
     title.textContent='Completed';tasks=S.tasks.filter(t=>t.done).sort((a,b)=>(b.completedAt||0)-(a.completedAt||0));
     subtitle=tasks.length+' completed';html=tasks.length?tasks.map(taskH).join(''):emptyH('\u2705','No completed tasks yet')
@@ -805,6 +854,31 @@ async function gcalSync(task){
   }catch(e){console.error('[GCal] Sync error:',e);alert('\u274C Google Calendar network error: '+e.message)}
   return null
 }
+
+async function gcalUpdate(task, eventId){
+  if(!gcalToken)return;
+  const dt=new Date(task.due),hasTime=dt.getHours()!==23||dt.getMinutes()!==59;
+  const body={summary:task.text,description:task.description||'',
+    start:hasTime?{dateTime:dt.toISOString()}:{date:dt.toISOString().split('T')[0]},
+    end:hasTime?{dateTime:new Date(dt.getTime()+3600000).toISOString()}:{date:dt.toISOString().split('T')[0]}};
+  try{
+    const r=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events/'+eventId,{
+      method:'PUT',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.ok)console.log('[GCal] Event updated');
+    else{const err=await r.text();console.error('[GCal] Update failed:',err);if(r.status===401){gcalToken=null;sessionStorage.removeItem('gcal_token')}}
+  }catch(e){console.error('[GCal] Update error:',e)}
+}
+
+async function gcalDelete(eventId){
+  if(!gcalToken||!eventId)return;
+  try{
+    const r=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events/'+eventId,{
+      method:'DELETE',headers:{'Authorization':'Bearer '+gcalToken}});
+    if(r.ok)console.log('[GCal] Event deleted');
+    else if(r.status!==404&&r.status!==410){const err=await r.text();console.error('[GCal] Delete failed:',err)}
+  }catch(e){console.error('[GCal] Delete error:',e)}
+}
+
 window.gcalSync=gcalSync;
 </script>
 </body>

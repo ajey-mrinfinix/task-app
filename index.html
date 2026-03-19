@@ -766,14 +766,13 @@ document.querySelectorAll('.pill').forEach(p=>{
 });
 
 // GOOGLE CALENDAR
-const GCAL_CLIENT_ID='YOUR_GOOGLE_CLIENT_ID';
+const GCAL_CLIENT_ID='586381749116-0me2jmqpmrcc1kj8mrfcbccci3606qer.apps.googleusercontent.com';
 const GCAL_SCOPES='https://www.googleapis.com/auth/calendar.events';
 let gcalToken=sessionStorage.getItem('gcal_token')||null;
 if(gcalToken)$('gcal-btn').innerHTML='<span class="gcal-icon">\u{1F4C5}</span> Google Calendar \u2705';
 
 function gcalConnect(){
   if(gcalToken){gcalToken=null;sessionStorage.removeItem('gcal_token');$('gcal-btn').innerHTML='<span class="gcal-icon">\u{1F4C5}</span> Connect Google Calendar';return}
-  if(GCAL_CLIENT_ID==='YOUR_GOOGLE_CLIENT_ID'){alert('Google Calendar Client ID not configured.\n\nTo set up:\n1. Go to console.cloud.google.com\n2. Create a project & enable Calendar API\n3. Create OAuth2 credentials\n4. Replace YOUR_GOOGLE_CLIENT_ID in the code');return}
   try{
     const client=google.accounts.oauth2.initTokenClient({client_id:GCAL_CLIENT_ID,scope:GCAL_SCOPES,
       callback(resp){if(resp.access_token){gcalToken=resp.access_token;sessionStorage.setItem('gcal_token',gcalToken);$('gcal-btn').innerHTML='<span class="gcal-icon">\u{1F4C5}</span> Google Calendar \u2705';console.log('[GCal] Connected')}}

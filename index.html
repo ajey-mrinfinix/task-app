@@ -13,12 +13,12 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
---sidebar-bg:#1f1e1e;--sidebar-hover:rgba(255,255,255,0.06);--sidebar-active:rgba(255,255,255,0.10);
---sidebar-text:#ccc;--sidebar-muted:#888;--main-bg:#fff;--text-primary:#202020;
---text-muted:#888;--text-faint:#bbb;--border:#f0f0f0;--border-strong:#e0e0e0;
---accent:#db4035;--p1:#db4035;--p2:#ff9a14;--p3:#4772fa;--p4:#ccc;
---due-future:#058527;--due-soon:#ad6200;--due-overdue:#db4035;--green-complete:#058527;
---sidebar-w:260px;
+--sidebar-bg:#1e1f22;--sidebar-hover:rgba(255,255,255,0.06);--sidebar-active:rgba(255,255,255,0.10);
+--sidebar-text:#e3e3e3;--sidebar-muted:#c4c7c5;--main-bg:#131314;--text-primary:#e3e3e3;
+--text-muted:#c4c7c5;--text-faint:#8e908d;--border:#333639;--border-strong:#444746;
+--accent:#a8c7fa;--p1:#f28b82;--p2:#fbbc04;--p3:#75b4e3;--p4:#8e908d;
+--due-future:var(--text-muted);--due-soon:#fbbc04;--due-overdue:#f28b82;--green-complete:var(--text-muted);
+--sidebar-w:300px;
 }
 html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-primary);background:var(--main-bg)}
 /* LOGIN */
@@ -65,9 +65,9 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
 .add-btn:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
 /* MAIN */
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.main-header{padding:28px 36px 16px;border-bottom:1px solid var(--border)}
-.main-header h1{font-size:22px;font-weight:700;letter-spacing:-.3px}
-.main-header .subtitle{font-size:13px;color:var(--text-muted);margin-top:3px}
+.main-header{padding:28px 16px 16px;border-bottom:none;background:var(--main-bg)}
+.main-header h1{font-size:28px;font-weight:400;letter-spacing:0}
+.main-header .subtitle{font-size:14px;color:var(--text-muted);margin-top:4px}
 .main-content{flex:1;overflow-y:auto;padding:0 36px 40px}
 /* QUICK ADD */
 .quick-add{padding:12px 0;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:14px;border-bottom:1px solid var(--border);transition:color .15s}
@@ -91,9 +91,9 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
 .btn-add:hover{opacity:.9}
 .btn-add:disabled{opacity:.5;cursor:default}
 .btn-cancel{padding:8px 18px;border-radius:8px;border:none;background:#f5f5f5;color:var(--text-muted);font-weight:500;font-size:13px;cursor:pointer;font-family:inherit;transition:background .15s}
-.btn-cancel:hover{background:#eee}
+.btn-cancel:hover{background:#333}
 /* TASK LIST */
-.section-header{font-size:14px;font-weight:700;padding:20px 0 8px;color:var(--text-primary);border-bottom:1px solid var(--border);margin-top:4px;display:flex;align-items:center;gap:8px}
+.section-header{font-size:14px;font-weight:500;padding:24px 0 8px 4px;color:var(--text-muted);margin-top:4px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
 .section-header .overdue-label{color:var(--due-overdue)}
 .task-item{display:flex;align-items:flex-start;padding:10px 8px 10px 4px;border-bottom:1px solid var(--border);position:relative;animation:fadeSlide .18s ease;transition:opacity .2s}
 .task-item.p1-border{border-left:3px solid var(--p1);padding-left:10px}
@@ -134,17 +134,31 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
 .subtask-inline input:focus{border-color:var(--accent)}
 .subtask-inline button{padding:5px 12px;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit}
 /* MODALS */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:14px;padding:24px;width:90%;max-width:480px;max-height:85vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.2)}
+.modal{background:var(--main-bg);border-radius:14px;padding:24px;width:90%;max-width:480px;max-height:85vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.2);color:var(--text-primary)}
 .modal h2{font-size:18px;font-weight:700;margin-bottom:20px;letter-spacing:-.3px}
 .modal label{display:block;font-size:12px;font-weight:600;margin-bottom:4px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px}
-.modal input[type="text"],.modal textarea,.modal input[type="datetime-local"],.modal select{width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:8px;font-size:14px;font-family:inherit;margin-bottom:14px;outline:none;transition:border-color .15s}
+.modal input[type="text"],.modal textarea,.modal input[type="datetime-local"],.modal select{width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:8px;font-size:14px;font-family:inherit;margin-bottom:14px;outline:none;background:var(--main-bg);color:var(--text-primary);color-scheme:dark;transition:border-color .15s}
 .modal input:focus,.modal textarea:focus,.modal select:focus{border-color:var(--accent)}
 .modal textarea{resize:vertical;min-height:50px}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
-.modal-actions .btn-danger{background:#fdeeed;color:var(--accent);border:none;padding:8px 18px;border-radius:8px;font-weight:500;font-size:13px;cursor:pointer;font-family:inherit;margin-right:auto;transition:all .15s}
-.modal-actions .btn-danger:hover{background:var(--accent);color:#fff}
+.modal-actions .btn-danger{background:#3a2020;color:var(--p1);border:none;padding:8px 18px;border-radius:8px;font-weight:500;font-size:13px;cursor:pointer;font-family:inherit;margin-right:auto;transition:all .15s}
+.modal-actions .btn-danger:hover{background:var(--p1);color:#111}
+/* FULLSCREEN MODAL (ADD & EDIT) */
+.fs-modal{position:fixed;inset:0;background:var(--main-bg);z-index:3000;display:none;flex-direction:column;animation:slideUp .25s cubic-bezier(0.1,0.9,0.2,1)}
+.fs-modal.open{display:flex}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.fs-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+.fs-header button{background:none;border:none;color:var(--text-muted);font-size:22px;cursor:pointer;padding:8px;transition:color .15s}
+.fs-header button:hover{color:var(--text-primary)}
+.fs-header button.save{color:var(--accent);font-size:15px;font-weight:600}
+.fs-content{flex:1;overflow-y:auto;padding:0 16px 80px}
+.fs-row{display:flex;align-items:center;padding:16px 0;border-bottom:1px solid var(--border);gap:16px}
+.fs-icon{width:24px;font-size:20px;color:var(--text-muted);display:flex;justify-content:center}
+.fs-input-container{flex:1;display:flex;align-items:center;min-width:0}
+.fs-input{width:100%;background:transparent;border:none;color:var(--text-primary);font-size:15px;outline:none;font-family:inherit;color-scheme:dark}
+.fs-input::placeholder{color:var(--text-muted)}
 /* COLOUR PICKER */
 .colour-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .colour-swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s}
@@ -303,29 +317,30 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
       <button class="gcal-btn" id="gcal-btn" onclick="gcalConnect()"><span class="gcal-icon">📅</span> Connect Google Calendar</button>
     </div>
   </aside>
+  <div class="bottom-app-bar" id="bottom-app-bar">
+    <button class="bottom-app-bar-icon active" id="mobile-hamburger-btn">&#x2630;</button>
+    <button class="bottom-app-bar-icon" style="margin-left:auto">&#x1f50d;</button>
+  </div>
   <div id="main">
     <div class="main-header"><h1 id="view-title">Inbox</h1><div class="subtitle" id="view-subtitle"></div></div>
     <div class="main-content">
-      <div class="quick-add" id="quick-add"><span class="plus">+</span> Add task</div>
-      <div class="add-panel" id="add-panel">
-        <input type="text" class="task-name-input" id="new-task-name" placeholder="Task name">
-        <textarea class="task-desc-input" id="new-task-desc" placeholder="Description" rows="1"></textarea>
-        <div class="pill-row">
-          <div class="pill"><span class="pill-label">&#x1F4C5; <span id="pill-due-text">Due date</span></span><input type="datetime-local" id="new-task-due"></div>
-          <div class="pill"><span class="pill-label">&#x1F6A9; <span id="pill-pri-text">Priority</span></span>
-            <select id="new-task-priority"><option value="4">No priority</option><option value="1">Priority 1</option><option value="2">Priority 2</option><option value="3">Priority 3</option></select></div>
-          <div class="pill"><span class="pill-label">&#x1F4C1; <span id="pill-proj-text">Inbox</span></span>
-            <select id="new-task-project"><option value="inbox">Inbox</option></select></div>
-          <div class="pill"><span class="pill-label">&#x2691; <span id="pill-dl-text">Deadline</span></span><input type="datetime-local" id="new-task-deadline"></div>
-          <div class="pill" onclick="const l=prompt('Enter link URL (e.g. https://...):','');if(l)document.getElementById('new-task-link').value=l"><span class="pill-label">🔗 Link</span></div><input type="hidden" id="new-task-link">
-          <div class="pill" id="pill-attach" onclick="document.getElementById('new-task-files').click()"><span class="pill-label">📎 Attachment</span></div>
-          <input type="file" id="new-task-files" multiple style="display:none" onchange="handleNewFiles(this)">
+      <button class="fab" id="quick-add" title="Add task">+</button>
+      <div class="fs-modal" id="add-panel">
+        <div class="fs-header">
+          <button id="cancel-add">&#x2715;</button>
+          <button class="save" id="btn-add-task">Save</button>
         </div>
-        <div id="new-attach-preview" class="attach-preview"></div>
-        <div class="pill-row" style="margin-top:6px"><div id="add-labels-row" class="labels-container"></div></div>
-        <div class="add-panel-actions">
-          <button class="btn-cancel" id="cancel-add">Cancel</button>
-          <button class="btn-add" id="btn-add-task">Add task</button>
+        <div class="fs-content">
+          <div class="fs-row" style="padding-top:0"><div class="fs-icon">&#x25A2;</div><div class="fs-input-container"><input type="text" class="fs-input" id="new-task-name" placeholder="Task name" style="font-size:18px"></div></div>
+          <div class="fs-row"><div class="fs-icon">&#x1f558;</div><div class="fs-input-container"><input type="datetime-local" class="fs-input" id="new-task-due"></div></div>
+          <div class="fs-row"><div class="fs-icon">&#x2691;</div><div class="fs-input-container"><input type="datetime-local" class="fs-input" id="new-task-deadline"></div></div>
+          <div class="fs-row"><div class="fs-icon">&#x1F3F4;</div><div class="fs-input-container" style="gap:16px"><span style="color:var(--text-muted);font-size:15px">Priority</span><select class="fs-input" id="new-task-priority" style="width:auto;border:1px solid var(--border);padding:4px 8px;border-radius:8px"><option value="4">None</option><option value="1">High</option><option value="2">Medium</option><option value="3">Low</option></select></div></div>
+          <div class="fs-row"><div class="fs-icon">&#x2630;</div><div class="fs-input-container"><select class="fs-input" id="new-task-project" style="width:auto;border:1px solid var(--border);padding:4px 8px;border-radius:8px"><option value="inbox">Inbox</option></select></div></div>
+          <div class="fs-row"><div class="fs-icon">&#x1F3F7;&#xFE0F;</div><div class="fs-input-container" style="flex-direction:column;align-items:flex-start"><span style="color:var(--text-muted);font-size:15px;margin-bottom:8px">Add tags</span><div id="add-labels-row" class="labels-container" style="margin:0"></div></div></div>
+          <div class="fs-row"><div class="fs-icon">&#x2261;</div><div class="fs-input-container"><textarea class="fs-input" id="new-task-desc" placeholder="Description" rows="1"></textarea></div></div>
+          <div class="fs-row"><div class="fs-icon">&#x1F517;</div><div class="fs-input-container"><input type="text" class="fs-input" id="new-task-link" placeholder="Add link URL"></div></div>
+          <div class="fs-row" onclick="document.getElementById('new-task-files').click()"><div class="fs-icon">&#x1F4CE;</div><div class="fs-value empty">Add attachment</div><input type="file" id="new-task-files" multiple style="display:none" onchange="handleNewFiles(this)"></div>
+          <div id="new-attach-preview" class="attach-preview" style="padding-left:40px"></div>
         </div>
       </div>
       <div id="task-list"></div>
@@ -333,22 +348,26 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
   </div>
 </div>
 <!-- EDIT MODAL -->
-<div class="modal-overlay" id="edit-modal"><div class="modal">
-  <h2>Edit task</h2><input type="hidden" id="edit-task-id">
-  <label>Task name</label><input type="text" id="edit-task-name">
-  <label>Description</label><textarea id="edit-task-desc" rows="2"></textarea>
-  <label>Due date</label><input type="datetime-local" id="edit-task-due">
-  <label>Deadline</label><input type="datetime-local" id="edit-task-deadline">
-  <label>Priority</label><select id="edit-task-priority"><option value="4">No priority</option><option value="1">Priority 1</option><option value="2">Priority 2</option><option value="3">Priority 3</option></select>
-  <label>Project</label><select id="edit-task-project"><option value="inbox">Inbox</option></select>
-  <label>Link URL</label><input type="text" id="edit-task-link" placeholder="https://...">
-  <label>Labels</label><div id="edit-labels-row" class="labels-container"></div>
-  <label>Attachments</label>
-  <div id="edit-attach-preview" class="attach-preview"></div>
-  <div class="pill" style="display:inline-flex;margin-bottom:14px" onclick="document.getElementById('edit-task-files').click()"><span class="pill-label">📎 Add file</span></div>
-  <input type="file" id="edit-task-files" multiple style="display:none" onchange="handleEditFiles(this)">
-  <div class="modal-actions"><button class="btn-danger" id="edit-delete">Delete</button><button class="btn-cancel" id="edit-cancel">Cancel</button><button class="btn-add" id="edit-save">Save</button></div>
-</div></div>
+<div class="fs-modal" id="edit-modal">
+  <div class="fs-header">
+    <button id="edit-cancel">&#x2715;</button>
+    <button class="save" id="edit-save">Save</button>
+  </div>
+  <div class="fs-content">
+    <input type="hidden" id="edit-task-id">
+    <div class="fs-row" style="padding-top:0"><div class="fs-icon">&#x25A2;</div><div class="fs-input-container"><input type="text" class="fs-input" id="edit-task-name" placeholder="Task name" style="font-size:18px"></div></div>
+    <div class="fs-row"><div class="fs-icon">&#x1f558;</div><div class="fs-input-container"><input type="datetime-local" class="fs-input" id="edit-task-due"></div></div>
+    <div class="fs-row"><div class="fs-icon">&#x2691;</div><div class="fs-input-container"><input type="datetime-local" class="fs-input" id="edit-task-deadline"></div></div>
+    <div class="fs-row"><div class="fs-icon">&#x1F3F4;</div><div class="fs-input-container" style="gap:16px"><span style="color:var(--text-muted);font-size:15px">Priority</span><select class="fs-input" id="edit-task-priority" style="width:auto;border:1px solid var(--border);padding:4px 8px;border-radius:8px"><option value="4">None</option><option value="1">High</option><option value="2">Medium</option><option value="3">Low</option></select></div></div>
+    <div class="fs-row"><div class="fs-icon">&#x2630;</div><div class="fs-input-container"><select class="fs-input" id="edit-task-project" style="width:auto;border:1px solid var(--border);padding:4px 8px;border-radius:8px"><option value="inbox">Inbox</option></select></div></div>
+    <div class="fs-row"><div class="fs-icon">&#x1F3F7;&#xFE0F;</div><div class="fs-input-container" style="flex-direction:column;align-items:flex-start"><span style="color:var(--text-muted);font-size:15px;margin-bottom:8px">Add tags</span><div id="edit-labels-row" class="labels-container" style="margin:0"></div></div></div>
+    <div class="fs-row"><div class="fs-icon">&#x2261;</div><div class="fs-input-container"><textarea class="fs-input" id="edit-task-desc" placeholder="Description" rows="1"></textarea></div></div>
+    <div class="fs-row"><div class="fs-icon">&#x1F517;</div><div class="fs-input-container"><input type="text" class="fs-input" id="edit-task-link" placeholder="Add link URL"></div></div>
+    <div class="fs-row" onclick="document.getElementById('edit-task-files').click()"><div class="fs-icon">&#x1F4CE;</div><div class="fs-value empty">Add attachment</div><input type="file" id="edit-task-files" multiple style="display:none" onchange="handleEditFiles(this)"></div>
+    <div id="edit-attach-preview" class="attach-preview" style="padding-left:40px"></div>
+    <div style="padding:16px 0;text-align:center"><button id="edit-delete" style="color:var(--p1);background:none;border:none;font-size:14px;cursor:pointer;padding:8px">Delete Task</button></div>
+  </div>
+</div>
 <!-- PROJECT MODAL -->
 <div class="modal-overlay" id="project-modal"><div class="modal">
   <h2 id="project-modal-title">New project</h2><input type="hidden" id="project-edit-id">
@@ -703,7 +722,9 @@ $('new-task-due').onchange=updPills;$('new-task-priority').onchange=updPills;$('
 function openAdd(){$('add-panel').classList.add('open');$('quick-add').style.display='none';popProj('new-task-project',S.view==='project'?S.projId:'inbox');renderAddLabels();updPills();$('new-task-name').focus()}
 function closeAdd(){$('add-panel').classList.remove('open');$('quick-add').style.display=''}
 $('quick-add').onclick=openAdd;$('cancel-add').onclick=closeAdd;
-$('hamburger-btn').onclick=()=>{$('sidebar').classList.toggle('open');$('sidebar-overlay').classList.toggle('open')};
+const toggleSb=()=>{$('sidebar').classList.toggle('open');$('sidebar-overlay').classList.toggle('open')};
+$('hamburger-btn').onclick=toggleSb;
+const mhb=$('mobile-hamburger-btn');if(mhb)mhb.onclick=toggleSb;
 $('sidebar-overlay').onclick=()=>{$('sidebar').classList.remove('open');$('sidebar-overlay').classList.remove('open')};
 
 function popProj(id,sel){const e=$(id);e.innerHTML='<option value="inbox">Inbox</option>'+S.projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');e.value=sel||'inbox'}
@@ -763,14 +784,14 @@ function renderMain(){
     subtitle=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
     const od=sortT(S.tasks.filter(t=>!t.done&&t.due&&isOverdue(t.due)));
     const td=sortT(S.tasks.filter(t=>!t.done&&t.due&&isToday(t.due)));
-    if(od.length)html+='<div class="section-header"><span class="overdue-label">Overdue</span></div>'+od.map(taskH).join('');
-    if(td.length)html+='<div class="section-header">Today</div>'+td.map(taskH).join('');
+    if(od.length)html+='<div class="section-header"><span class="overdue-label">Overdue</span><span>&#x2304;</span></div>'+od.map(taskH).join('');
+    if(td.length)html+='<div class="section-header"><span>Today</span><span>&#x2304;</span></div>'+td.map(taskH).join('');
     if(!od.length&&!td.length)html=emptyH('\u{1F389}','All done for today!')
   }else if(v==='upcoming'){
     title.textContent='Upcoming';subtitle='Next 7 days';
     for(let i=0;i<=7;i++){const d=new Date();d.setDate(d.getDate()+i);d.setHours(0,0,0,0);
       const dt=sortT(S.tasks.filter(t=>!t.done&&t.due&&sod(new Date(t.due)).getTime()===d.getTime()));
-      if(dt.length)html+='<div class="section-header">'+secDate(d)+'</div>'+dt.map(taskH).join('')}
+      if(dt.length)html+='<div class="section-header"><span>'+secDate(d)+'</span><span>&#x2304;</span></div>'+dt.map(taskH).join('')}
     if(!html)html=emptyH('\u{1F4C6}','No upcoming tasks')
   }else if(v==='calendar'){
     title.textContent='Calendar';
@@ -831,8 +852,8 @@ function taskH(t){
   if(t.subtasks&&t.subtasks.length){stH='<div class="subtask-list">'+t.subtasks.map((s,i)=>`<div class="subtask-item${s.done?' done':''}"><div class="priority-circle" onclick="toggleSub('${t.id}',${i})">${s.done?'\u2713':''}</div><span class="subtask-text">${linkify(s.text)}</span></div>`).join('')+'</div>'}
   return `<div class="task-item${dn}${p1b}">
     <div class="priority-circle ${pc}" onclick="toggleDone('${t.id}')">${t.done?'\u2713':''}</div>
-    <div class="task-body"><div class="task-text">${linkify(t.text)}</div>${t.description?`<div class="task-desc">${linkify(t.description)}</div>`:''}${ch?`<div class="task-chips">${ch}</div>`:''}${stH}
-      <div class="add-subtask-btn" onclick="showStInput('${t.id}')">+ Add subtask</div>
+    <div class="task-body" onclick="openEdit('${t.id}')"><div class="task-text">${linkify(t.text)}</div>${t.description?`<div class="task-desc">${linkify(t.description)}</div>`:''}${ch?`<div class="task-chips">${ch}</div>`:''}${stH}
+      <div class="add-subtask-btn" onclick="event.stopPropagation();showStInput('${t.id}')">+ Add subtask</div>
       <div class="subtask-inline" id="st-input-${t.id}" style="display:none;padding-left:0"><input type="text" id="st-text-${t.id}" placeholder="Subtask name" onkeydown="if(event.key==='Enter')addSub('${t.id}')"><button class="btn-add" onclick="addSub('${t.id}')" style="font-size:11px;padding:4px 10px">Add</button></div>
     </div>
     <div class="task-actions"><button onclick="openEdit('${t.id}')" title="Edit">\u270F\uFE0F</button><button onclick="dupTask('${t.id}')" title="Duplicate">\u{1F4CB}</button><button onclick="delTask('${t.id}')" title="Delete">\u{1F5D1}\uFE0F</button></div></div>`

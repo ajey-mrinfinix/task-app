@@ -244,12 +244,18 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
 <!-- LOGIN -->
 <div id="login-overlay">
   <h1><span>&#x1F4CB;</span> Tasks</h1>
-  <p>Enter your password to unlock</p>
-  <div id="login-box">
-    <input type="password" id="login-pw" placeholder="Password" autocomplete="off">
-    <button id="login-btn">Unlock</button>
+  <p id="auth-subtitle" style="margin-bottom:16px">Sign in to your account</p>
+  <div id="login-box" style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;width:100%;max-width:300px">
+    <input type="email" id="auth-email" placeholder="Email address" autocomplete="email" style="padding:10px 14px;border-radius:8px;border:1px solid #ccc;font-size:14px;width:100%">
+    <input type="password" id="auth-pw" placeholder="Password" autocomplete="current-password" style="padding:10px 14px;border-radius:8px;border:1px solid #ccc;font-size:14px;width:100%">
+    <button id="auth-btn" style="padding:10px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-weight:600;font-size:14px;cursor:pointer">Sign In</button>
   </div>
-  <div id="login-error"></div>
+  <button id="auth-google-btn" style="background:#fff;color:#333;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:300px;padding:10px;border-radius:8px;font-weight:500;cursor:pointer"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18"> Sign in with Google</button>
+  <div id="login-error" style="color:var(--due-overdue);margin-top:12px;font-size:13px;max-width:300px;text-align:center"></div>
+  <p style="margin-top:16px;font-size:13px;color:var(--text-muted)">
+    <span id="auth-toggle-text">Don't have an account?</span> 
+    <a href="#" id="auth-toggle-link" style="color:var(--accent);text-decoration:none;font-weight:600">Sign Up</a>
+  </p>
 </div>
 <!-- APP -->
 <button class="hamburger" id="hamburger-btn">&#x2630;</button>
@@ -258,9 +264,10 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
   <aside id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo"><span>&#x1F4CB;</span> Tasks</div>
-      <div style="display:flex;align-items:center;gap:4px">
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
         <div class="sync-indicator" id="sync-indicator"><span class="sync-dot local" id="sync-dot"></span><span id="sync-text">Local</span></div>
-        <button class="lock-btn" id="lock-btn" title="Lock">&#x1F512;</button>
+        <div style="font-size:11px;color:var(--sidebar-muted)" id="user-email-display"></div>
+        <button class="lock-btn" id="logout-btn" title="Sign Out" style="font-size:11px;padding:2px 6px;width:auto">Sign Out</button>
       </div>
     </div>
     <nav class="nav-section">
@@ -359,50 +366,52 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script type="module">
-const APP_PASSWORD='admin123';
 const COLOURS=['#db4035','#ff9a14','#ffd43b','#7bc86c','#058527','#299438','#6accbc','#158fad','#4772fa','#8f4ffe','#eb96eb','#e05194'];
 const firebaseConfig={apiKey:"AIzaSyBEjo9Gg_i1p-KLanfiqhyYuGohj6mYGnQ",authDomain:"tasks-877ab.firebaseapp.com",projectId:"tasks-877ab",storageBucket:"tasks-877ab.firebasestorage.app",messagingSenderId:"906342109181",appId:"1:906342109181:web:33cb53b35caf4ed5601394",measurementId:"G-M461W00CY0"};
 
-let db,useFB=false;
+let db,auth,useFB=false,currentUser=null;
 function setSyncStatus(ok){
   const dot=$('sync-dot'),txt=$('sync-text');
   if(ok){dot.className='sync-dot synced';txt.textContent='Synced'}
   else{dot.className='sync-dot local';txt.textContent='Local'}
 }
+
+let unsubTasks,unsubProjects,unsubLabels;
+function startSync(){
+  if(!useFB||!currentUser)return;
+  const F=window._F;
+  const onErr=(name)=>(err)=>{console.error(`[Sync] ${name} listener error:`,err);setSyncStatus(false)};
+  unsubTasks=F.onSnapshot(F.query(F.collection(db,'tasks'),F.where('userId','==',currentUser.uid)),s=>{S.tasks=s.docs.map(d=>({id:d.id,...d.data()}));setSyncStatus(true);renderAll()},onErr('tasks'));
+  unsubProjects=F.onSnapshot(F.query(F.collection(db,'projects'),F.where('userId','==',currentUser.uid)),s=>{S.projects=s.docs.map(d=>({id:d.id,...d.data()}));setSyncStatus(true);renderAll()},onErr('projects'));
+  unsubLabels=F.onSnapshot(F.query(F.collection(db,'labels'),F.where('userId','==',currentUser.uid)),s=>{S.labels=s.docs.map(d=>({id:d.id,...d.data()}));setSyncStatus(true);renderAll()},onErr('labels'));
+}
+function stopSync(){
+  if(unsubTasks)unsubTasks();if(unsubProjects)unsubProjects();if(unsubLabels)unsubLabels();
+}
+
 async function initFB(){
   try{
     console.log('[Sync] Connecting to Firebase...');
     const{initializeApp}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
     const F=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-    if(firebaseConfig.apiKey==='YOUR_API_KEY'){console.warn('[Sync] Firebase not configured, using localStorage');setSyncStatus(false);return}
-    const app=initializeApp(firebaseConfig);db=F.getFirestore(app);useFB=true;window._F=F;
+    const A=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    const app=initializeApp(firebaseConfig);
+    db=F.getFirestore(app);auth=A.getAuth(app);useFB=true;window._F=F;window._A=A;
     console.log('[Sync] Firebase connected successfully');
-    // Migrate localStorage data to Firebase (one-time)
-    let migrated=false;
-    const migrateCollection=async(name)=>{
-      const local=lsG(name);
-      if(!local.length)return;
-      const snap=await F.getDocs(F.collection(db,name));
-      if(snap.empty){
-        console.log(`[Sync] Migrating ${local.length} ${name} from localStorage to Firebase...`);
-        for(const item of local){
-          const{id,...data}=item;
-          await F.addDoc(F.collection(db,name),data);
-        }
-        migrated=true;
-        console.log(`[Sync] Migrated ${name} successfully`);
+    
+    A.onAuthStateChanged(auth, user=>{
+      if(user){
+        currentUser=user;
+        $('login-overlay').classList.add('hidden');$('app').classList.add('active');
+        $('user-email-display').textContent=user.email;
+        startSync();
+      }else{
+        currentUser=null;
+        $('login-overlay').classList.remove('hidden');$('app').classList.remove('active');
+        $('user-email-display').textContent='';
+        stopSync();
       }
-    };
-    await migrateCollection('tasks');
-    await migrateCollection('projects');
-    await migrateCollection('labels');
-    if(migrated){localStorage.removeItem('tasks');localStorage.removeItem('projects');localStorage.removeItem('labels');console.log('[Sync] localStorage cleared after migration')}
-    // Real-time listeners with error callbacks
-    const onErr=(name)=>(err)=>{console.error(`[Sync] ${name} listener error:`,err);setSyncStatus(false)};
-    F.onSnapshot(F.collection(db,'tasks'),s=>{S.tasks=s.docs.map(d=>({id:d.id,...d.data()}));setSyncStatus(true);renderAll()},onErr('tasks'));
-    F.onSnapshot(F.collection(db,'projects'),s=>{S.projects=s.docs.map(d=>({id:d.id,...d.data()}));setSyncStatus(true);renderAll()},onErr('projects'));
-    F.onSnapshot(F.collection(db,'labels'),s=>{S.labels=s.docs.map(d=>({id:d.id,...d.data()}));setSyncStatus(true);renderAll()},onErr('labels'));
-    setSyncStatus(true);
+    });
   }catch(e){console.error('[Sync] Firebase init failed:',e);setSyncStatus(false)}
 }
 
@@ -412,16 +421,36 @@ function lsS(k,v){localStorage.setItem(k,JSON.stringify(v))}
 const S={tasks:[],projects:[],labels:[],view:'inbox',projId:null,labelName:null};
 const $=id=>document.getElementById(id);
 
-// AUTH
-$('login-btn').onclick=()=>{
-  if($('login-pw').value===APP_PASSWORD){localStorage.setItem('a','1');$('login-overlay').classList.add('hidden');$('app').classList.add('active');boot()}
-  else{$('login-error').textContent='Wrong password';$('login-pw').value=''}
+// AUTH UI
+let authMode='login';
+$('auth-toggle-link').onclick=e=>{
+  e.preventDefault();
+  authMode=authMode==='login'?'signup':'login';
+  $('auth-subtitle').textContent=authMode==='login'?'Sign in to your account':'Create a new account';
+  $('auth-btn').textContent=authMode==='login'?'Sign In':'Sign Up';
+  $('auth-toggle-text').textContent=authMode==='login'?"Don't have an account?":"Already have an account?";
+  $('auth-toggle-link').textContent=authMode==='login'?'Sign Up':'Log In';
+  $('login-error').textContent='';
 };
-$('lock-btn').onclick=()=>{localStorage.removeItem('a');location.reload()};
-$('login-pw').onkeydown=e=>{if(e.key==='Enter')$('login-btn').click()};
-if(localStorage.getItem('a')==='1'){$('login-overlay').classList.add('hidden');$('app').classList.add('active');boot()}
+$('auth-btn').onclick=async()=>{
+  const e=$('auth-email').value,p=$('auth-pw').value;
+  $('login-error').textContent='';
+  if(!e||!p)return $('login-error').textContent='Please enter email and password';
+  try{
+    const A=window._A;
+    if(authMode==='login') await A.signInWithEmailAndPassword(auth,e,p);
+    else await A.createUserWithEmailAndPassword(auth,e,p);
+  }catch(err){$('login-error').textContent=err.message}
+};
+$('auth-google-btn').onclick=async()=>{
+  try{$('login-error').textContent='';const A=window._A;const p=new A.GoogleAuthProvider();await A.signInWithPopup(auth,p)}
+  catch(e){$('login-error').textContent=e.message}
+};
+$('auth-pw').onkeydown=e=>{if(e.key==='Enter')$('auth-btn').click()};
+$('logout-btn').onclick=async()=>{if(useFB&&auth)await window._A.signOut(auth);else location.reload()};
 
-async function boot(){await initFB();if(!useFB){S.tasks=lsG('tasks');S.projects=lsG('projects');S.labels=lsG('labels')}renderAll();buildColours()}
+async function boot(){await initFB();if(!useFB){S.tasks=lsG('tasks');S.projects=lsG('projects');S.labels=lsG('labels');renderAll();}buildColours()}
+boot();
 
 function uuid(){return crypto.randomUUID?crypto.randomUUID():'xxxx-xxxx-xxxx'.replace(/x/g,()=>((Math.random()*16)|0).toString(16))}
 
@@ -450,7 +479,7 @@ function sortT(a){return[...a].sort((x,y)=>{if(x.priority!==y.priority)return x.
 
 // CRUD
 async function dbAdd(c,d){
-  if(useFB){try{const F=window._F;return(await F.addDoc(F.collection(db,c),d)).id}catch(e){console.error('[Sync] Write failed:',e);setSyncStatus(false);throw e}}
+  if(useFB){d.userId=currentUser.uid;try{const F=window._F;return(await F.addDoc(F.collection(db,c),d)).id}catch(e){console.error('[Sync] Write failed:',e);setSyncStatus(false);throw e}}
   const id=uuid(),a=lsG(c);a.push({id,...d});lsS(c,a);S[c]=a;renderAll();return id
 }
 async function dbUp(c,id,d){

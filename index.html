@@ -414,12 +414,12 @@ const $=id=>document.getElementById(id);
 
 // AUTH
 $('login-btn').onclick=()=>{
-  if($('login-pw').value===APP_PASSWORD){sessionStorage.setItem('a','1');$('login-overlay').classList.add('hidden');$('app').classList.add('active');boot()}
+  if($('login-pw').value===APP_PASSWORD){localStorage.setItem('a','1');$('login-overlay').classList.add('hidden');$('app').classList.add('active');boot()}
   else{$('login-error').textContent='Wrong password';$('login-pw').value=''}
 };
-$('lock-btn').onclick=()=>{sessionStorage.removeItem('a');location.reload()};
+$('lock-btn').onclick=()=>{localStorage.removeItem('a');location.reload()};
 $('login-pw').onkeydown=e=>{if(e.key==='Enter')$('login-btn').click()};
-if(sessionStorage.getItem('a')==='1'){$('login-overlay').classList.add('hidden');$('app').classList.add('active');boot()}
+if(localStorage.getItem('a')==='1'){$('login-overlay').classList.add('hidden');$('app').classList.add('active');boot()}
 
 async function boot(){await initFB();if(!useFB){S.tasks=lsG('tasks');S.projects=lsG('projects');S.labels=lsG('labels')}renderAll();buildColours()}
 

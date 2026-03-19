@@ -821,14 +821,14 @@ document.querySelectorAll('.pill').forEach(p=>{
 // GOOGLE CALENDAR
 const GCAL_CLIENT_ID='586381749116-0me2jmqpmrcc1kj8mrfcbccci3606qer.apps.googleusercontent.com';
 const GCAL_SCOPES='https://www.googleapis.com/auth/calendar.events';
-let gcalToken=sessionStorage.getItem('gcal_token')||null;
+let gcalToken=localStorage.getItem('gcal_token')||null;
 if(gcalToken)$('gcal-btn').innerHTML='<span class="gcal-icon">\u{1F4C5}</span> Google Calendar \u2705';
 
 function gcalConnect(){
-  if(gcalToken){gcalToken=null;sessionStorage.removeItem('gcal_token');$('gcal-btn').innerHTML='<span class="gcal-icon">\u{1F4C5}</span> Connect Google Calendar';return}
+  if(gcalToken){gcalToken=null;localStorage.removeItem('gcal_token');$('gcal-btn').innerHTML='<span class="gcal-icon">\u{1F4C5}</span> Connect Google Calendar';return}
   try{
     const client=google.accounts.oauth2.initTokenClient({client_id:GCAL_CLIENT_ID,scope:GCAL_SCOPES,
-      callback(resp){if(resp.access_token){gcalToken=resp.access_token;sessionStorage.setItem('gcal_token',gcalToken);$('gcal-btn').innerHTML='<span class="gcal-icon">\u{1F4C5}</span> Google Calendar \u2705';console.log('[GCal] Connected')}}
+      callback(resp){if(resp.access_token){gcalToken=resp.access_token;localStorage.setItem('gcal_token',gcalToken);$('gcal-btn').innerHTML='<span class="gcal-icon">\u{1F4C5}</span> Google Calendar \u2705';console.log('[GCal] Connected')}}
     });
     client.requestAccessToken()
   }catch(e){console.error('[GCal] Auth failed:',e);alert('Google Sign-in failed. Make sure popups are allowed.')}
@@ -849,7 +849,7 @@ async function gcalSync(task){
       const err=await r.text();
       console.error('[GCal] Create failed:',err);
       alert('\u274C Google Calendar sync failed:\n'+err);
-      if(r.status===401){gcalToken=null;sessionStorage.removeItem('gcal_token')}
+      if(r.status===401){gcalToken=null;localStorage.removeItem('gcal_token')}
     }
   }catch(e){console.error('[GCal] Sync error:',e);alert('\u274C Google Calendar network error: '+e.message)}
   return null
@@ -865,7 +865,7 @@ async function gcalUpdate(task, eventId){
     const r=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events/'+eventId,{
       method:'PUT',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(r.ok)console.log('[GCal] Event updated');
-    else{const err=await r.text();console.error('[GCal] Update failed:',err);if(r.status===401){gcalToken=null;sessionStorage.removeItem('gcal_token')}}
+    else{const err=await r.text();console.error('[GCal] Update failed:',err);if(r.status===401){gcalToken=null;localStorage.removeItem('gcal_token')}}
   }catch(e){console.error('[GCal] Update error:',e)}
 }
 

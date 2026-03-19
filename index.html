@@ -164,6 +164,50 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
 .empty-state{text-align:center;padding:80px 20px;color:var(--text-muted)}
 .empty-state .e-icon{font-size:48px;margin-bottom:16px;opacity:.6}
 .empty-state p{font-size:15px;font-weight:500}
+/* DATE PICKER */
+.dp-dropdown{position:fixed;z-index:1500;background:#fff;border:1px solid var(--border-strong);border-radius:12px;width:280px;box-shadow:0 8px 32px rgba(0,0,0,.18);animation:fadeSlide .15s ease;overflow:hidden;display:none}
+.dp-dropdown.open{display:block}
+.dp-shortcuts{padding:4px 0;border-bottom:1px solid var(--border)}
+.dp-shortcut{display:flex;align-items:center;gap:10px;padding:8px 16px;cursor:pointer;font-size:13px;color:var(--text-primary);transition:background .1s}
+.dp-shortcut:hover{background:#f5f5f5}
+.dp-shortcut .dp-s-icon{width:20px;text-align:center;font-size:14px}
+.dp-shortcut .dp-s-day{margin-left:auto;font-size:12px;color:var(--text-muted)}
+.dp-cal{padding:12px}
+.dp-month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dp-month-nav span{font-size:13px;font-weight:600}
+.dp-month-nav button{background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);padding:2px 8px;border-radius:4px;line-height:1;transition:all .15s}
+.dp-month-nav button:hover{background:var(--border);color:var(--text-primary)}
+.dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;text-align:center}
+.dp-grid .dp-dh{font-size:10px;color:var(--text-muted);font-weight:600;padding:4px 0}
+.dp-grid .dp-c{font-size:12px;padding:6px 0;border-radius:6px;cursor:pointer;color:var(--text-primary);transition:all .1s;line-height:1.2}
+.dp-grid .dp-c:hover{background:#f0f0f0}
+.dp-grid .dp-c.today{color:var(--accent);font-weight:700}
+.dp-grid .dp-c.selected{background:var(--accent);color:#fff}
+.dp-grid .dp-c.other{color:var(--text-faint)}
+.dp-grid .dp-c.empty{cursor:default}
+.dp-time-row{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--border)}
+.dp-time-row input[type="time"]{flex:1;border:1px solid var(--border-strong);border-radius:6px;padding:6px 10px;font-size:13px;font-family:inherit;outline:none}
+.dp-time-row input[type="time"]:focus{border-color:var(--accent)}
+.dp-clear-btn{background:none;border:1px solid var(--border-strong);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;color:var(--text-muted);font-family:inherit;transition:all .15s}
+.dp-clear-btn:hover{background:#f5f5f5;color:var(--text-primary)}
+/* ATTACHMENTS */
+.chip-attach{background:#f5f5f5;color:var(--text-muted);cursor:pointer}
+.chip-attach:hover{background:#eee}
+.attach-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.attach-item{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:4px;background:#f5f5f5;color:var(--text-muted)}
+.attach-item a{color:var(--p3);text-decoration:none}
+.attach-item a:hover{text-decoration:underline}
+.attach-remove{cursor:pointer;font-size:13px;color:var(--text-faint);margin-left:2px;transition:color .15s}
+.attach-remove:hover{color:var(--accent)}
+.attach-preview{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.attach-preview-item{display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px}
+/* GOOGLE CALENDAR */
+.gcal-section{padding:8px}
+.gcal-btn{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;border:none;background:rgba(255,255,255,.06);color:var(--sidebar-text);font-size:13px;font-weight:500;cursor:pointer;width:100%;font-family:inherit;transition:all .15s}
+.gcal-btn:hover{background:rgba(255,255,255,.1)}
+.gcal-btn.connected{color:#058527}
+.gcal-icon{font-size:16px}
+.chip-gcal{background:#e8f5e9;color:#058527}
 /* RESPONSIVE */
 @media(max-width:680px){
   #sidebar{position:fixed;z-index:850;transform:translateX(-100%);height:100vh}
@@ -172,6 +216,7 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
   .sidebar-overlay.open{display:block}
   .main-header{padding:24px 16px 16px 52px}
   .main-content{padding:0 16px 32px}
+  .dp-dropdown{width:260px;left:8px!important;right:8px}
 }
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
 #sidebar::-webkit-scrollbar-thumb{background:#444}
@@ -216,6 +261,9 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
       <div id="labels-list"></div>
       <div class="add-btn" id="add-label-link">+ Add label</div>
     </div>
+    <div class="gcal-section">
+      <button class="gcal-btn" id="gcal-btn" onclick="gcalConnect()"><span class="gcal-icon">📅</span> Connect Google Calendar</button>
+    </div>
   </aside>
   <div id="main">
     <div class="main-header"><h1 id="view-title">Inbox</h1><div class="subtitle" id="view-subtitle"></div></div>
@@ -231,7 +279,10 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
           <div class="pill"><span class="pill-label">&#x1F4C1; <span id="pill-proj-text">Inbox</span></span>
             <select id="new-task-project"><option value="inbox">Inbox</option></select></div>
           <div class="pill"><span class="pill-label">&#x2691; <span id="pill-dl-text">Deadline</span></span><input type="datetime-local" id="new-task-deadline"></div>
+          <div class="pill" id="pill-attach" onclick="document.getElementById('new-task-files').click()"><span class="pill-label">📎 Attachment</span></div>
+          <input type="file" id="new-task-files" multiple style="display:none" onchange="handleNewFiles(this)">
         </div>
+        <div id="new-attach-preview" class="attach-preview"></div>
         <div class="pill-row" style="margin-top:6px"><div id="add-labels-row" class="labels-container"></div></div>
         <div class="add-panel-actions">
           <button class="btn-cancel" id="cancel-add">Cancel</button>
@@ -252,6 +303,10 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
   <label>Priority</label><select id="edit-task-priority"><option value="4">No priority</option><option value="1">Priority 1</option><option value="2">Priority 2</option><option value="3">Priority 3</option></select>
   <label>Project</label><select id="edit-task-project"><option value="inbox">Inbox</option></select>
   <label>Labels</label><div id="edit-labels-row" class="labels-container"></div>
+  <label>Attachments</label>
+  <div id="edit-attach-preview" class="attach-preview"></div>
+  <div class="pill" style="display:inline-flex;margin-bottom:14px" onclick="document.getElementById('edit-task-files').click()"><span class="pill-label">📎 Add file</span></div>
+  <input type="file" id="edit-task-files" multiple style="display:none" onchange="handleEditFiles(this)">
   <div class="modal-actions"><button class="btn-danger" id="edit-delete">Delete</button><button class="btn-cancel" id="edit-cancel">Cancel</button><button class="btn-add" id="edit-save">Save</button></div>
 </div></div>
 <!-- PROJECT MODAL -->
@@ -273,6 +328,17 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
   <div class="actions"><button class="btn-cancel" id="confirm-cancel">Cancel</button><button class="btn-add" id="confirm-ok" style="background:var(--accent)">Delete</button></div>
 </div></div>
 
+<!-- DATE PICKER DROPDOWN -->
+<div class="dp-dropdown" id="dp-dropdown">
+  <div class="dp-shortcuts" id="dp-shortcuts"></div>
+  <div class="dp-cal">
+    <div class="dp-month-nav"><button id="dp-prev">&#x2039;</button><span id="dp-month-label"></span><button id="dp-next">&#x203A;</button></div>
+    <div class="dp-grid" id="dp-grid"></div>
+  </div>
+  <div class="dp-time-row"><span style="font-size:14px">🕐</span><input type="time" id="dp-time"><button class="dp-clear-btn" id="dp-clear">Clear</button></div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script type="module">
 const APP_PASSWORD='admin123';
 const COLOURS=['#db4035','#ff9a14','#ffd43b','#7bc86c','#058527','#299438','#6accbc','#158fad','#4772fa','#8f4ffe','#eb96eb','#e05194'];
@@ -347,10 +413,12 @@ function isOverdue(d){return new Date(d)<new Date()&&!isToday(d)}
 function dayDiff(a,b){return Math.round((sod(new Date(b))-sod(new Date(a)))/864e5)}
 
 function relDate(d){
-  if(!d)return '';const diff=dayDiff(new Date(),d);
-  if(diff===0)return 'Today';if(diff===1)return 'Tomorrow';if(diff===-1)return 'Yesterday';
-  if(diff>1&&diff<=7)return 'in '+diff+'d';if(diff<-1)return Math.abs(diff)+'d ago';
-  return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short'})
+  if(!d)return '';const dt=new Date(d),diff=dayDiff(new Date(),d);
+  const hasTime=dt.getHours()!==23||dt.getMinutes()!==59;
+  const timeStr=hasTime?' '+String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0'):'';
+  if(diff===0)return 'Today'+timeStr;if(diff===1)return 'Tomorrow'+timeStr;if(diff===-1)return 'Yesterday'+timeStr;
+  if(diff>1&&diff<=7)return 'in '+diff+'d'+timeStr;if(diff<-1)return Math.abs(diff)+'d ago'+timeStr;
+  return dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+timeStr
 }
 function dueClass(d){if(!d)return '';const diff=dayDiff(new Date(),d);return diff<0?'overdue':diff<=1?'soon':''}
 function secDate(d){
@@ -375,17 +443,19 @@ async function dbDel(c,id){
   const a=lsG(c).filter(x=>x.id!==id);lsS(c,a);S[c]=a;renderAll()
 }
 
-// ADD TASK
+let newAttachments=[];
 $('btn-add-task').onclick=async()=>{
   const n=$('new-task-name').value.trim();if(!n)return;
   const labels=[...$('add-labels-row').querySelectorAll('.label-tag.selected')].map(l=>l.dataset.name);
   await dbAdd('tasks',{text:n,description:$('new-task-desc').value.trim(),done:false,
     priority:+$('new-task-priority').value,projectId:$('new-task-project').value,
     labels,due:$('new-task-due').value||null,deadline:$('new-task-deadline').value||null,
+    attachments:newAttachments.length?[...newAttachments]:[],
     subtasks:[],createdAt:Date.now(),completedAt:null});
   $('new-task-name').value='';$('new-task-desc').value='';$('new-task-due').value='';
   $('new-task-deadline').value='';$('new-task-priority').value='4';
   $('add-labels-row').querySelectorAll('.label-tag').forEach(l=>l.classList.remove('selected'));
+  newAttachments=[];$('new-attach-preview').innerHTML='';
   updPills();$('new-task-name').focus()
 };
 
@@ -399,13 +469,17 @@ function addSub(tid){const inp=$('st-text-'+tid);const v=inp.value.trim();if(!v)
 // Expose to onclick handlers
 window.toggleDone=toggleDone;window.delTask=delTask;window.dupTask=dupTask;
 window.toggleSub=toggleSub;window.showStInput=showStInput;window.addSub=addSub;
+window.removeNewAttach=i=>{newAttachments.splice(i,1);renderNewAttach()};
+window.removeEditAttach=i=>{editAttachments.splice(i,1);renderEditAttach()};
 
-// EDIT MODAL
+let editAttachments=[];
 function openEdit(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   $('edit-task-id').value=id;$('edit-task-name').value=t.text;$('edit-task-desc').value=t.description||'';
   $('edit-task-due').value=t.due||'';$('edit-task-deadline').value=t.deadline||'';
   $('edit-task-priority').value=t.priority||4;popProj('edit-task-project',t.projectId);
+  editAttachments=[...(t.attachments||[])];
+  renderEditAttach();
   renderEditLabels(t.labels||[]);$('edit-modal').classList.add('open')
 }
 window.openEdit=openEdit;
@@ -415,7 +489,8 @@ $('edit-save').onclick=async()=>{
   const labels=[...$('edit-labels-row').querySelectorAll('.label-tag.selected')].map(l=>l.dataset.name);
   await dbUp('tasks',id,{text:$('edit-task-name').value.trim(),description:$('edit-task-desc').value.trim(),
     due:$('edit-task-due').value||null,deadline:$('edit-task-deadline').value||null,
-    priority:+$('edit-task-priority').value,projectId:$('edit-task-project').value,labels});
+    priority:+$('edit-task-priority').value,projectId:$('edit-task-project').value,labels,
+    attachments:editAttachments.length?[...editAttachments]:[]});
   $('edit-modal').classList.remove('open')
 };
 $('edit-delete').onclick=()=>{const id=$('edit-task-id').value;showConfirm('Delete this task?',async()=>{await dbDel('tasks',id);$('edit-modal').classList.remove('open')})};
@@ -592,6 +667,7 @@ function taskH(t){
   if(t.priority&&t.priority<4)ch+=`<span class="chip chip-priority cp${t.priority}">P${t.priority}</span>`;
   if(t.projectId&&t.projectId!=='inbox'){const p=S.projects.find(x=>x.id===t.projectId);if(p)ch+=`<span class="chip chip-project"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.colour}"></span> ${esc(p.name)}</span>`}
   (t.labels||[]).forEach(l=>ch+=`<span class="chip chip-label">\u{1F3F7} ${esc(l)}</span>`);
+  if(t.attachments&&t.attachments.length)ch+=`<span class="chip chip-attach">\u{1F4CE} ${t.attachments.length} file${t.attachments.length>1?'s':''}</span>`;
   let stH='';
   if(t.subtasks&&t.subtasks.length){stH='<div class="subtask-list">'+t.subtasks.map((s,i)=>`<div class="subtask-item${s.done?' done':''}"><div class="priority-circle" onclick="toggleSub('${t.id}',${i})">${s.done?'\u2713':''}</div><span class="subtask-text">${esc(s.text)}</span></div>`).join('')+'</div>'}
   return `<div class="task-item${dn}${p1b}">
@@ -610,15 +686,118 @@ let gP=false;
 document.addEventListener('keydown',e=>{
   const tag=e.target.tagName;
   if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'){
-    if(e.key==='Escape'){closeAdd();$('edit-modal').classList.remove('open');e.target.blur()}
+    if(e.key==='Escape'){closeAdd();$('edit-modal').classList.remove('open');DP.close();e.target.blur()}
     if(e.key==='Enter'&&$('add-panel').classList.contains('open')&&e.target.id==='new-task-name'){e.preventDefault();$('btn-add-task').click()}
     return
   }
   if(e.key==='q'||e.key==='Q'){e.preventDefault();openAdd()}
-  if(e.key==='Escape'){closeAdd();$('edit-modal').classList.remove('open');$('project-modal').classList.remove('open');$('label-modal').classList.remove('open');$('confirm-dialog').classList.remove('open')}
+  if(e.key==='Escape'){closeAdd();$('edit-modal').classList.remove('open');$('project-modal').classList.remove('open');$('label-modal').classList.remove('open');$('confirm-dialog').classList.remove('open');DP.close()}
   if(e.key==='g'||e.key==='G'){gP=true;setTimeout(()=>gP=false,800);return}
   if(gP){if(e.key==='i'||e.key==='I')switchView('inbox');if(e.key==='t'||e.key==='T')switchView('today');if(e.key==='u'||e.key==='U')switchView('upcoming');gP=false}
 });
+
+// FILE ATTACHMENT HANDLERS
+function readFileAsDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
+function renderNewAttach(){$('new-attach-preview').innerHTML=newAttachments.map((a,i)=>`<div class="attach-preview-item">\u{1F4CE} ${esc(a.name)}<span class="attach-remove" onclick="removeNewAttach(${i})">&times;</span></div>`).join('')}
+function renderEditAttach(){$('edit-attach-preview').innerHTML=editAttachments.map((a,i)=>`<div class="attach-preview-item">\u{1F4CE} ${esc(a.name)}<span class="attach-remove" onclick="removeEditAttach(${i})">&times;</span></div>`).join('')}
+async function handleNewFiles(inp){for(const f of inp.files){if(f.size>10*1024*1024){alert('File too large (max 10MB)');continue}const url=await readFileAsDataURL(f);newAttachments.push({name:f.name,url,type:f.type})}renderNewAttach();inp.value=''}
+async function handleEditFiles(inp){for(const f of inp.files){if(f.size>10*1024*1024){alert('File too large (max 10MB)');continue}const url=await readFileAsDataURL(f);editAttachments.push({name:f.name,url,type:f.type})}renderEditAttach();inp.value=''}
+window.handleNewFiles=handleNewFiles;window.handleEditFiles=handleEditFiles;
+
+// DATE PICKER
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DP={target:null,month:0,year:0,sel:null,
+  open(trigEl,targetId){
+    this.target=targetId;const v=$(targetId).value;
+    if(v){const d=new Date(v);this.month=d.getMonth();this.year=d.getFullYear();this.sel=d;
+      $('dp-time').value=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    }else{const n=new Date();this.month=n.getMonth();this.year=n.getFullYear();this.sel=null;$('dp-time').value=''}
+    this.render();const el=$('dp-dropdown'),r=trigEl.getBoundingClientRect();
+    el.style.top=(r.bottom+4)+'px';el.style.left=Math.min(r.left,window.innerWidth-290)+'px';
+    el.classList.add('open')
+  },
+  close(){$('dp-dropdown').classList.remove('open')},
+  render(){this.renderShortcuts();this.renderCal()},
+  renderShortcuts(){
+    const t=new Date(),sc=[
+      {l:'Today',i:'\u{1F4C5}',d:new Date(t)},
+      {l:'Tomorrow',i:'\u2600\uFE0F',d:(()=>{const x=new Date(t);x.setDate(x.getDate()+1);return x})()},
+      {l:'This weekend',i:'\u{1F6CB}\uFE0F',d:(()=>{const x=new Date(t);x.setDate(x.getDate()+(6-x.getDay()||7));return x})()},
+      {l:'Next week',i:'\u{1F4C5}',d:(()=>{const x=new Date(t);x.setDate(x.getDate()+(8-x.getDay()));return x})()}
+    ];
+    $('dp-shortcuts').innerHTML=sc.map((s,i)=>`<div class="dp-shortcut" data-idx="${i}"><span class="dp-s-icon">${s.i}</span>${s.l}<span class="dp-s-day">${s.d.toLocaleDateString('en',{weekday:'short'})}</span></div>`).join('');
+    this._sc=sc
+  },
+  renderCal(){
+    $('dp-month-label').textContent=MONTHS[this.month]+' '+this.year;
+    const f=new Date(this.year,this.month,1),last=new Date(this.year,this.month+1,0);
+    const sd=(f.getDay()+6)%7,today=sod(new Date());
+    let h=['M','T','W','T','F','S','S'].map(d=>`<div class="dp-dh">${d}</div>`).join('');
+    const prev=new Date(this.year,this.month,0);
+    for(let i=sd-1;i>=0;i--){const d=prev.getDate()-i;h+=`<div class="dp-c other">${d}</div>`}
+    for(let d=1;d<=last.getDate();d++){
+      const dt=new Date(this.year,this.month,d),iT=dt.getTime()===today.getTime();
+      const iS=this.sel&&dt.toDateString()===this.sel.toDateString();
+      h+=`<div class="dp-c${iT?' today':''}${iS?' selected':''}" data-d="${d}">${d}</div>`
+    }
+    const rem=7-((sd+last.getDate())%7);if(rem<7)for(let d=1;d<=rem;d++)h+=`<div class="dp-c other">${d}</div>`;
+    $('dp-grid').innerHTML=h
+  },
+  pick(day){
+    const d=new Date(this.year,this.month,day);this.sel=d;
+    const time=$('dp-time').value;
+    if(time){const[h,m]=time.split(':');d.setHours(+h,+m,0,0)}else{d.setHours(23,59,0,0)}
+    $(this.target).value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    updPills();this.close()
+  }
+};
+$('dp-grid').onclick=e=>{const c=e.target.closest('.dp-c');if(c&&!c.classList.contains('other')&&c.dataset.d)DP.pick(+c.dataset.d)};
+$('dp-shortcuts').onclick=e=>{const s=e.target.closest('.dp-shortcut');if(s){const sc=DP._sc[+s.dataset.idx];DP.sel=sc.d;DP.month=sc.d.getMonth();DP.year=sc.d.getFullYear();DP.pick(sc.d.getDate())}};
+$('dp-prev').onclick=()=>{DP.month--;if(DP.month<0){DP.month=11;DP.year--}DP.renderCal()};
+$('dp-next').onclick=()=>{DP.month++;if(DP.month>11){DP.month=0;DP.year++}DP.renderCal()};
+$('dp-clear').onclick=()=>{if(DP.target){$(DP.target).value='';updPills()}DP.close()};
+$('dp-time').onchange=()=>{if(DP.sel&&DP.target)DP.pick(DP.sel.getDate())};
+document.addEventListener('click',e=>{if(!e.target.closest('.dp-dropdown')&&!e.target.closest('.pill'))DP.close()});
+
+// Wire date pills to date picker
+document.querySelectorAll('.pill').forEach(p=>{
+  const inp=p.querySelector('input[type="datetime-local"]');
+  if(inp){p.onclick=e=>{e.preventDefault();e.stopPropagation();DP.open(p,inp.id)};inp.style.display='none'}
+});
+
+// GOOGLE CALENDAR
+const GCAL_CLIENT_ID='YOUR_GOOGLE_CLIENT_ID';
+const GCAL_SCOPES='https://www.googleapis.com/auth/calendar.events';
+let gcalToken=sessionStorage.getItem('gcal_token')||null;
+if(gcalToken)$('gcal-btn').innerHTML='<span class="gcal-icon">\u{1F4C5}</span> Google Calendar \u2705';
+
+function gcalConnect(){
+  if(gcalToken){gcalToken=null;sessionStorage.removeItem('gcal_token');$('gcal-btn').innerHTML='<span class="gcal-icon">\u{1F4C5}</span> Connect Google Calendar';return}
+  if(GCAL_CLIENT_ID==='YOUR_GOOGLE_CLIENT_ID'){alert('Google Calendar Client ID not configured.\n\nTo set up:\n1. Go to console.cloud.google.com\n2. Create a project & enable Calendar API\n3. Create OAuth2 credentials\n4. Replace YOUR_GOOGLE_CLIENT_ID in the code');return}
+  try{
+    const client=google.accounts.oauth2.initTokenClient({client_id:GCAL_CLIENT_ID,scope:GCAL_SCOPES,
+      callback(resp){if(resp.access_token){gcalToken=resp.access_token;sessionStorage.setItem('gcal_token',gcalToken);$('gcal-btn').innerHTML='<span class="gcal-icon">\u{1F4C5}</span> Google Calendar \u2705';console.log('[GCal] Connected')}}
+    });
+    client.requestAccessToken()
+  }catch(e){console.error('[GCal] Auth failed:',e);alert('Google Sign-in failed. Make sure popups are allowed.')}
+}
+window.gcalConnect=gcalConnect;
+
+async function gcalSync(task){
+  if(!gcalToken||!task.due)return;
+  const dt=new Date(task.due),hasTime=dt.getHours()!==23||dt.getMinutes()!==59;
+  const body={summary:task.text,description:task.description||'',
+    start:hasTime?{dateTime:dt.toISOString()}:{date:dt.toISOString().split('T')[0]},
+    end:hasTime?{dateTime:new Date(dt.getTime()+3600000).toISOString()}:{date:dt.toISOString().split('T')[0]}};
+  try{
+    const r=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{
+      method:'POST',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.ok){const ev=await r.json();console.log('[GCal] Event created:',ev.id);return ev.id}
+    else{const err=await r.text();console.error('[GCal] Create failed:',err);if(r.status===401){gcalToken=null;sessionStorage.removeItem('gcal_token')}}
+  }catch(e){console.error('[GCal] Sync error:',e)}
+  return null
+}
+window.gcalSync=gcalSync;
 </script>
 </body>
 </html>

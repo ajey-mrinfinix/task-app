@@ -425,6 +425,20 @@ function stopSync(){
   if(unsubTasks)unsubTasks();if(unsubProjects)unsubProjects();if(unsubLabels)unsubLabels();
 }
 
+const SVGS = {
+  check: '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>',
+  flag: '<svg viewBox="0 0 24 24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>',
+  link: '<svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>',
+  label: '<svg viewBox="0 0 24 24"><path d="M17.63 5.84C17.27 5.33 16.67 5 16 5L5 5.01C3.9 5.01 3 5.9 3 7v10c0 1.1.9 1.99 2 1.99L16 19c.67 0 1.27-.33 1.63-.84L22 12l-4.37-6.16zM16 17H5V7h11l3.55 5L16 17z"/><circle cx="13" cy="12" r="1.5"/></svg>',
+  attach: '<svg viewBox="0 0 24 24"><path d="M16.5 6V17.5c0 2.48-2.02 4.5-4.5 4.5s-4.5-2.02-4.5-4.5V5c0-1.66 1.34-3 3-3s3 1.34 3 3v11.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5V6H9v11.5c0 2.48 2.02 4.5 4.5 4.5s4.5-2.02 4.5-4.5V5c0-3.31-2.69-6-6-6s-6 2.69-6 6v12.5c0 4.14 3.36 7.5 7.5 7.5s7.5-3.36 7.5-7.5V6h-1.5z"/></svg>',
+  project: '<svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>',
+  edit: '<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>',
+  copy: '<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v11z"/></svg>',
+  delete: '<svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>',
+  inbox: '<svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5v-3h3.56c.69 1.19 1.97 2 3.44 2s2.75-.81 3.44-2H19v3zm0-5h-4.99c0 1.1-.9 2-2 2s-2-.9-2-2H5V5h14v9z"/></svg>'
+};
+
 async function initFB(){
   try{
     console.log('[Sync] Connecting to Firebase...');
@@ -886,25 +900,33 @@ function taskH(t){
   const pc=t.priority===1?'p1':t.priority===2?'p2':t.priority===3?'p3':'';
   const dn=t.done?' done':'',p1b=t.priority===1&&!t.done?' p1-border':'';
   let ch='';
-  if(t.due){const dc=dueClass(t.due);ch+=`<span class="chip chip-due ${dc}">\u{1F4C5} ${relDate(t.due)}</span>`}
-  if(t.deadline)ch+=`<span class="chip chip-deadline">\u2691 ${relDate(t.deadline)}</span>`;
+  if(t.due){const dc=dueClass(t.due);ch+=`<span class="chip chip-due ${dc}"><span class="chip-svg">${SVGS.calendar}</span> ${relDate(t.due)}</span>`}
+  if(t.deadline)ch+=`<span class="chip chip-deadline"><span class="chip-svg">${SVGS.flag}</span> ${relDate(t.deadline)}</span>`;
   if(t.priority&&t.priority<4)ch+=`<span class="chip chip-priority cp${t.priority}">P${t.priority}</span>`;
   if(t.projectId&&t.projectId!=='inbox'){const p=S.projects.find(x=>x.id===t.projectId);if(p)ch+=`<span class="chip chip-project"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.colour}"></span> ${esc(p.name)}</span>`}
-  if(t.link)ch+=`<a href="${t.link.startsWith('http')?t.link:'https://'+t.link}" target="_blank" class="chip chip-link" style="color:var(--p3);text-decoration:none" onclick="event.stopPropagation()">🔗 Open Link</a>`;
-  (t.labels||[]).forEach(l=>ch+=`<span class="chip chip-label">\u{1F3F7} ${esc(l)}</span>`);
-  if(t.attachments&&t.attachments.length)ch+=`<span class="chip chip-attach">\u{1F4CE} ${t.attachments.length} file${t.attachments.length>1?'s':''}</span>`;
+  if(t.link)ch+=`<a href="${t.link.startsWith('http')?t.link:'https://'+t.link}" target="_blank" class="chip chip-link" onclick="event.stopPropagation()"><span class="chip-svg">${SVGS.link}</span> Open Link</a>`;
+  (t.labels||[]).forEach(l=>ch+=`<span class="chip chip-label"><span class="chip-svg">${SVGS.label}</span> ${esc(l)}</span>`);
+  if(t.attachments&&t.attachments.length)ch+=`<span class="chip chip-attach"><span class="chip-svg">${SVGS.attach}</span> ${t.attachments.length} file${t.attachments.length>1?'s':''}</span>`;
   let stH='';
-  if(t.subtasks&&t.subtasks.length){stH='<div class="subtask-list">'+t.subtasks.map((s,i)=>`<div class="subtask-item${s.done?' done':''}"><div class="priority-circle" onclick="toggleSub('${t.id}',${i})">${s.done?'\u2713':''}</div><span class="subtask-text">${linkify(s.text)}</span></div>`).join('')+'</div>'}
+  if(t.subtasks&&t.subtasks.length){stH='<div class="subtask-list">'+t.subtasks.map((s,i)=>`<div class="subtask-item${s.done?' done':''}"><div class="priority-circle" onclick="toggleSub('${t.id}',${i})">${s.done?SVGS.check:''}</div><span class="subtask-text">${linkify(s.text)}</span></div>`).join('')+'</div>'}
   return `<div class="task-item${dn}${p1b}">
-    <div class="priority-circle ${pc}" onclick="toggleDone('${t.id}')">${t.done?'\u2713':''}</div>
+    <div class="priority-circle ${pc}" onclick="toggleDone('${t.id}')">${t.done?SVGS.check:''}</div>
     <div class="task-body" onclick="openEdit('${t.id}')"><div class="task-text">${linkify(t.text)}</div>${t.description?`<div class="task-desc">${linkify(t.description)}</div>`:''}${ch?`<div class="task-chips">${ch}</div>`:''}${stH}
       <div class="add-subtask-btn" onclick="event.stopPropagation();showStInput('${t.id}')">+ Add subtask</div>
       <div class="subtask-inline" id="st-input-${t.id}" style="display:none;padding-left:0"><input type="text" id="st-text-${t.id}" placeholder="Subtask name" onkeydown="if(event.key==='Enter')addSub('${t.id}')"><button class="btn-add" onclick="addSub('${t.id}')" style="font-size:11px;padding:4px 10px">Add</button></div>
     </div>
-    <div class="task-actions"><button onclick="openEdit('${t.id}')" title="Edit">\u270F\uFE0F</button><button onclick="dupTask('${t.id}')" title="Duplicate">\u{1F4CB}</button><button onclick="delTask('${t.id}')" title="Delete">\u{1F5D1}\uFE0F</button></div></div>`
+    <div class="task-actions"><button onclick="openEdit('${t.id}')" title="Edit">${SVGS.edit}</button><button onclick="dupTask('${t.id}')" title="Duplicate">${SVGS.copy}</button><button onclick="delTask('${t.id}')" title="Delete">${SVGS.delete}</button></div></div>`
 }
 
-function emptyH(i,m){return `<div class="empty-state"><div class="e-icon">${i}</div><p>${m}</p></div>`}
+function emptyH(i,m){
+  let icon = i;
+  if(i==='\u{1F4E5}') icon = SVGS.inbox;
+  else if(i==='\u{1F389}') icon = SVGS.check;
+  else if(i==='\u{1F4C6}') icon = SVGS.calendar;
+  else if(i==='\u{1F4C1}') icon = SVGS.project;
+  else if(i==='\u{1F3F7}') icon = SVGS.label;
+  else if(i==='\u{1F4CB}') icon = SVGS.inbox;
+  return `<div class="empty-state"><div class="e-icon">${icon}</div><p>${m}</p></div>`}
 
 // KEYBOARD
 let gP=false;

@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Tasks &#8212; Personal Task Manager</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#db4035">
+<link rel="apple-touch-icon" href="icon-512.png">
 <meta name="description" content="A personal task manager with real-time sync across devices.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -909,6 +912,13 @@ async function gcalDelete(eventId){
 }
 
 window.gcalSync=gcalSync;
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+    });
+  }
 </script>
 </body>
 </html>

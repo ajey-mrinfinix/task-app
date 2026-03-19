@@ -161,7 +161,7 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
 .confirm-box p{font-size:15px;margin-bottom:20px;color:var(--text-primary);font-weight:500}
 .confirm-box .actions{display:flex;gap:8px;justify-content:center}
 /* HAMBURGER */
-.hamburger{display:none;position:fixed;top:12px;left:12px;z-index:900;background:var(--main-bg);border:none;color:#fff;font-size:20px;padding:8px 12px;border-radius:8px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.hamburger{display:none;position:fixed;top:12px;left:12px;z-index:900;background:var(--sidebar-bg);border:none;color:#fff;font-size:20px;padding:8px 12px;border-radius:8px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:800}
 /* EMPTY STATE */
 .empty-state{text-align:center;padding:80px 20px;color:var(--text-muted)}
@@ -316,6 +316,7 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
           <div class="pill"><span class="pill-label">&#x1F4C1; <span id="pill-proj-text">Inbox</span></span>
             <select id="new-task-project"><option value="inbox">Inbox</option></select></div>
           <div class="pill"><span class="pill-label">&#x2691; <span id="pill-dl-text">Deadline</span></span><input type="datetime-local" id="new-task-deadline"></div>
+          <div class="pill" onclick="const l=prompt('Enter link URL (e.g. https://...):','');if(l)document.getElementById('new-task-link').value=l"><span class="pill-label">🔗 Link</span></div><input type="hidden" id="new-task-link">
           <div class="pill" id="pill-attach" onclick="document.getElementById('new-task-files').click()"><span class="pill-label">📎 Attachment</span></div>
           <input type="file" id="new-task-files" multiple style="display:none" onchange="handleNewFiles(this)">
         </div>
@@ -339,6 +340,7 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
   <label>Deadline</label><input type="datetime-local" id="edit-task-deadline">
   <label>Priority</label><select id="edit-task-priority"><option value="4">No priority</option><option value="1">Priority 1</option><option value="2">Priority 2</option><option value="3">Priority 3</option></select>
   <label>Project</label><select id="edit-task-project"><option value="inbox">Inbox</option></select>
+  <label>Link URL</label><input type="text" id="edit-task-link" placeholder="https://...">
   <label>Labels</label><div id="edit-labels-row" class="labels-container"></div>
   <label>Attachments</label>
   <div id="edit-attach-preview" class="attach-preview"></div>
@@ -548,20 +550,25 @@ async function dbDel(c,id){
 
 let newAttachments=[];
 $('btn-add-task').onclick=async()=>{
-  const n=$('new-task-name').value.trim();if(!n)return;
-  const labels=[...$('add-labels-row').querySelectorAll('.label-tag.selected')].map(l=>l.dataset.name);
-  const tData={text:n,description:$('new-task-desc').value.trim(),done:false,
-    priority:+$('new-task-priority').value,projectId:$('new-task-project').value,
-    labels,due:$('new-task-due').value||null,deadline:$('new-task-deadline').value||null,
-    attachments:newAttachments.length?[...newAttachments]:[],
-    subtasks:[],createdAt:Date.now(),completedAt:null};
-  const tid = await dbAdd('tasks',tData);
-  if(tData.due){const eid=await gcalSync(tData);if(eid)await dbUp('tasks',tid,{gcalEventId:eid})}
-  $('new-task-name').value='';$('new-task-desc').value='';$('new-task-due').value='';
-  $('new-task-deadline').value='';$('new-task-priority').value='4';
-  $('add-labels-row').querySelectorAll('.label-tag').forEach(l=>l.classList.remove('selected'));
-  newAttachments=[];$('new-attach-preview').innerHTML='';
-  updPills();$('new-task-name').focus()
+  const txt=$('new-task-name').value.trim();if(!txt)return;
+  const desc=$('new-task-desc').value.trim();
+  const due=$('new-task-due').value||null;
+  const dl=$('new-task-deadline').value||null;
+  const pr=parseInt($('new-task-priority').value);
+  const lk=$('new-task-link').value.trim()||null;
+  const ls=Array.from(document.querySelectorAll('#add-labels-row .label-tag.selected')).map(el=>el.dataset.name);
+  
+  $('btn-add-task').disabled=true;
+  try{
+    const tData={text:txt,description:desc,done:false,priority:pr,projectId:$('new-task-project').value,labels:ls,due,deadline:dl,link:lk,attachments:newAttachments.length?[...newAttachments]:[],subtasks:[],createdAt:Date.now(),completedAt:null};
+    const id=await dbAdd('tasks',tData);
+    if(due){const eid=await gcalSync(tData);if(eid)await dbUp('tasks',id,{gcalEventId:eid})}
+    $('new-task-name').value='';$('new-task-desc').value='';$('new-task-due').value='';
+    $('new-task-deadline').value='';$('new-task-priority').value='4';$('new-task-link').value='';
+    document.querySelectorAll('#add-labels-row .label-tag.selected').forEach(x=>x.classList.remove('selected'));
+    newAttachments=[];const np=document.getElementById('new-attach-preview');if(np)np.innerHTML='';
+    updPills();closeAdd()
+  }finally{$('btn-add-task').disabled=false}
 };
 
 function toggleDone(id){const t=S.tasks.find(x=>x.id===id);if(t)dbUp('tasks',id,{done:!t.done,completedAt:t.done?null:Date.now()})}
@@ -582,29 +589,38 @@ function openEdit(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   $('edit-task-id').value=id;$('edit-task-name').value=t.text;$('edit-task-desc').value=t.description||'';
   $('edit-task-due').value=t.due||'';$('edit-task-deadline').value=t.deadline||'';
-  $('edit-task-priority').value=t.priority||4;popProj('edit-task-project',t.projectId);
-  editAttachments=[...(t.attachments||[])];
-  renderEditAttach();
-  renderEditLabels(t.labels||[]);$('edit-modal').classList.add('open')
+  $('edit-task-priority').value=t.priority||4;
+  popProj('edit-task-project',t.projectId||'inbox');
+  $('edit-task-link').value=t.link||'';
+  renderEditLabels(t.labels||[]);
+  $('edit-modal').classList.add('open')
 }
 window.openEdit=openEdit;
 $('edit-cancel').onclick=()=>$('edit-modal').classList.remove('open');
 $('edit-save').onclick=async()=>{
   const id=$('edit-task-id').value;
-  const labels=[...$('edit-labels-row').querySelectorAll('.label-tag.selected')].map(l=>l.dataset.name);
-  const tData={text:$('edit-task-name').value.trim(),description:$('edit-task-desc').value.trim(),
-    due:$('edit-task-due').value||null,deadline:$('edit-task-deadline').value||null,
-    priority:+$('edit-task-priority').value,projectId:$('edit-task-project').value,labels,
-    attachments:editAttachments.length?[...editAttachments]:[]};
-  const oldT=S.tasks.find(x=>x.id===id);
-  await dbUp('tasks',id,tData);
-  if(oldT&&oldT.gcalEventId){
-    if(tData.due)await gcalUpdate(tData,oldT.gcalEventId);
-    else{await gcalDelete(oldT.gcalEventId);await dbUp('tasks',id,{gcalEventId:null})}
-  }else if(tData.due){
-    const eid=await gcalSync(tData);if(eid)await dbUp('tasks',id,{gcalEventId:eid});
-  }
-  $('edit-modal').classList.remove('open')
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  const txt=$('edit-task-name').value.trim();if(!txt)return;
+  const desc=$('edit-task-desc').value.trim();
+  const due=$('edit-task-due').value||null;
+  const dl=$('edit-task-deadline').value||null;
+  const pr=parseInt($('edit-task-priority').value);
+  const pro=$('edit-task-project').value;
+  const lk=$('edit-task-link').value.trim()||null;
+  const ls=Array.from(document.querySelectorAll('#edit-labels-row .label-tag.selected')).map(el=>el.dataset.name);
+  
+  $('edit-save').disabled=true;
+  try{
+    const newData={text:txt,description:desc,due,deadline:dl,priority:pr,projectId:pro,labels:ls,link:lk,attachments:editAttachments.length?[...editAttachments]:[]};
+    await dbUp('tasks',id,newData);
+    if(t&&t.gcalEventId){
+      if(due)await gcalUpdate(newData,t.gcalEventId);
+      else{await gcalDelete(t.gcalEventId);await dbUp('tasks',id,{gcalEventId:null})}
+    }else if(due){
+      const eid=await gcalSync(newData);if(eid)await dbUp('tasks',id,{gcalEventId:eid});
+    }
+    $('edit-modal').classList.remove('open')
+  }finally{$('edit-save').disabled=false}
 };
 $('edit-delete').onclick=()=>{const id=$('edit-task-id').value;const t=S.tasks.find(x=>x.id===id);showConfirm('Delete this task?',async()=>{if(t&&t.gcalEventId)await gcalDelete(t.gcalEventId);await dbDel('tasks',id);$('edit-modal').classList.remove('open')})};
 
@@ -794,6 +810,10 @@ function renderMain(){
 }
 
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function linkify(str){
+  if(!str)return'';
+  return esc(str).replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank" onclick="event.stopPropagation()" style="color:var(--p3);text-decoration:underline">$1</a>');
+}
 
 function taskH(t){
   const pc=t.priority===1?'p1':t.priority===2?'p2':t.priority===3?'p3':'';
@@ -803,13 +823,14 @@ function taskH(t){
   if(t.deadline)ch+=`<span class="chip chip-deadline">\u2691 ${relDate(t.deadline)}</span>`;
   if(t.priority&&t.priority<4)ch+=`<span class="chip chip-priority cp${t.priority}">P${t.priority}</span>`;
   if(t.projectId&&t.projectId!=='inbox'){const p=S.projects.find(x=>x.id===t.projectId);if(p)ch+=`<span class="chip chip-project"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.colour}"></span> ${esc(p.name)}</span>`}
+  if(t.link)ch+=`<a href="${t.link.startsWith('http')?t.link:'https://'+t.link}" target="_blank" class="chip chip-link" style="color:var(--p3);text-decoration:none" onclick="event.stopPropagation()">🔗 Open Link</a>`;
   (t.labels||[]).forEach(l=>ch+=`<span class="chip chip-label">\u{1F3F7} ${esc(l)}</span>`);
   if(t.attachments&&t.attachments.length)ch+=`<span class="chip chip-attach">\u{1F4CE} ${t.attachments.length} file${t.attachments.length>1?'s':''}</span>`;
   let stH='';
-  if(t.subtasks&&t.subtasks.length){stH='<div class="subtask-list">'+t.subtasks.map((s,i)=>`<div class="subtask-item${s.done?' done':''}"><div class="priority-circle" onclick="toggleSub('${t.id}',${i})">${s.done?'\u2713':''}</div><span class="subtask-text">${esc(s.text)}</span></div>`).join('')+'</div>'}
+  if(t.subtasks&&t.subtasks.length){stH='<div class="subtask-list">'+t.subtasks.map((s,i)=>`<div class="subtask-item${s.done?' done':''}"><div class="priority-circle" onclick="toggleSub('${t.id}',${i})">${s.done?'\u2713':''}</div><span class="subtask-text">${linkify(s.text)}</span></div>`).join('')+'</div>'}
   return `<div class="task-item${dn}${p1b}">
     <div class="priority-circle ${pc}" onclick="toggleDone('${t.id}')">${t.done?'\u2713':''}</div>
-    <div class="task-body"><div class="task-text">${esc(t.text)}</div>${t.description?`<div class="task-desc">${esc(t.description)}</div>`:''}${ch?`<div class="task-chips">${ch}</div>`:''}${stH}
+    <div class="task-body"><div class="task-text">${linkify(t.text)}</div>${t.description?`<div class="task-desc">${linkify(t.description)}</div>`:''}${ch?`<div class="task-chips">${ch}</div>`:''}${stH}
       <div class="add-subtask-btn" onclick="showStInput('${t.id}')">+ Add subtask</div>
       <div class="subtask-inline" id="st-input-${t.id}" style="display:none;padding-left:0"><input type="text" id="st-text-${t.id}" placeholder="Subtask name" onkeydown="if(event.key==='Enter')addSub('${t.id}')"><button class="btn-add" onclick="addSub('${t.id}')" style="font-size:11px;padding:4px 10px">Add</button></div>
     </div>

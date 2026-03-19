@@ -275,7 +275,10 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-top:2px">
         <div class="sync-indicator" id="sync-indicator"><span class="sync-dot local" id="sync-dot"></span><span id="sync-text">Local</span></div>
         <div style="font-size:10px;color:var(--sidebar-muted);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis" id="user-email-display" title=""></div>
-        <button class="lock-btn" id="logout-btn" title="Sign Out" style="font-size:11px;padding:2px 6px;width:auto">Sign Out</button>
+        <div style="display:flex;gap:4px">
+          <button class="lock-btn" id="notify-btn" title="Enable Notifications" style="font-size:11px;padding:2px 6px;width:auto">🔔</button>
+          <button class="lock-btn" id="logout-btn" title="Sign Out" style="font-size:11px;padding:2px 6px;width:auto">Sign Out</button>
+        </div>
       </div>
     </div>
     <nav class="nav-section">
@@ -461,6 +464,43 @@ async function boot(){await initFB();if(!useFB){S.tasks=lsG('tasks');S.projects=
 boot();
 
 function uuid(){return crypto.randomUUID?crypto.randomUUID():'xxxx-xxxx-xxxx'.replace(/x/g,()=>((Math.random()*16)|0).toString(16))}
+
+// NOTIFICATIONS
+$('notify-btn').onclick = async () => {
+  if (!('Notification' in window)) return alert('Notifications not supported');
+  const p = await Notification.requestPermission();
+  if (p === 'granted') {
+    $('notify-btn').style.display = 'none';
+    alert('\u2705 Notifications enabled! You will be reminded when tasks are due.');
+  }
+};
+if (!('Notification' in window) || Notification.permission !== 'default') {
+  const nb = $('notify-btn'); if(nb) nb.style.display = 'none';
+}
+
+setInterval(() => {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const now = new Date().getTime();
+  const notified = lsG('notified_tasks');
+  let updated = false;
+  
+  S.tasks.forEach(t => {
+    if (t.done || !t.due || notified.includes(t.id)) return;
+    if (t.due.includes('T') && t.due.split('T')[1] !== '23:59') {
+      const dueTime = new Date(t.due).getTime();
+      if (now >= dueTime && now <= dueTime + 3600000) {
+        new Notification('Task Due: ' + t.text, {
+          body: t.description || 'It is time to complete this task.',
+          icon: '/icon-512.png'
+        });
+        notified.push(t.id);
+        updated = true;
+      }
+    }
+  });
+  
+  if (updated) lsS('notified_tasks', notified);
+}, 60000);
 
 // DATE HELPERS
 function sod(d){const r=new Date(d);r.setHours(0,0,0,0);return r}

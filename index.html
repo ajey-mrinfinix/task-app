@@ -908,11 +908,18 @@ function renderCalendarView(title, sub, list) {
     title.textContent='Calendar';
     const calDate=new Date(S.calYear ?? new Date().getFullYear(), S.calMonth ?? new Date().getMonth(), 1);
     S.calYear=calDate.getFullYear();S.calMonth=calDate.getMonth();
-    let subtitle=MONTHS[calDate.getMonth()]+' '+calDate.getFullYear();
+    
     const last=new Date(calDate.getFullYear(),calDate.getMonth()+1,0);
     const sd=(calDate.getDay()+6)%7,today=sod(new Date());
-    let html = `<div class="cv-nav"><button onclick="S.calMonth--;renderAll()">Prev</button><button onclick="S.calMonth=new Date().getMonth();S.calYear=new Date().getFullYear();renderAll()">Today</button><button onclick="S.calMonth++;renderAll()">Next</button></div>`;
-    html+='<div class="cv-dh-container">'+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div class="cv-dh">${x}</div>`).join('')+'</div><div class="cv-grid">';
+    
+    let mSel = `<select style="background:var(--sidebar-bg);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:5px;font-size:13px;outline:none;font-family:inherit;cursor:pointer" onchange="S.calMonth=Number(this.value);renderAll()">`+MONTHS.map((m,i)=>`<option value="${i}"${i===calDate.getMonth()?' selected':''}>${m}</option>`).join('')+'</select>';
+    let ySel = `<input type="number" value="${calDate.getFullYear()}" style="background:var(--sidebar-bg);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;width:64px;outline:none;font-family:inherit" onchange="S.calYear=Number(this.value);renderAll()">`;
+    
+    let html = `<div class="cv-nav" style="display:flex;align-items:center;gap:8px">`+
+               `<div style="display:flex;gap:4px;margin-right:auto">${mSel}${ySel}</div>`+
+               `<div style="display:flex;gap:4px"><button onclick="S.calMonth--;renderAll()">&lsaquo; Prev</button><button onclick="S.calMonth=new Date().getMonth();S.calYear=new Date().getFullYear();renderAll()">Today</button><button onclick="S.calMonth++;renderAll()">Next &rsaquo;</button></div></div>`;
+               
+    html+='<div class="cv-dh-container" style="margin-top:20px">'+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div class="cv-dh">${x}</div>`).join('')+'</div><div class="cv-grid">';
     const prev=new Date(calDate.getFullYear(),calDate.getMonth(),0);
     for(let i=sd-1;i>=0;i--)html+=`<div class="cv-day other"><span class="cv-d-num">${prev.getDate()-i}</span></div>`;
     for(let day=1;day<=last.getDate();day++){
@@ -928,7 +935,7 @@ function renderCalendarView(title, sub, list) {
     }
     const rem=7-((sd+last.getDate())%7);if(rem<7)for(let i=1;i<=rem;i++)html+=`<div class="cv-day other"><span class="cv-d-num">${i}</span></div>`;
     html+='</div>'
-    sub.textContent=subtitle; list.innerHTML=html;
+    sub.textContent=''; list.innerHTML=html;
 }
 
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}

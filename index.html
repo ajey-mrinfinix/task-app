@@ -906,17 +906,17 @@ function renderMain(){
 
 function renderCalendarView(title, sub, list) {
     title.textContent='Calendar';
-    const d=new Date(S.calYear||new Date().getFullYear(), S.calMonth||new Date().getMonth(), 1);
-    S.calYear=d.getFullYear();S.calMonth=d.getMonth();
-    let subtitle=MONTHS[d.getMonth()]+' '+d.getFullYear();
-    const last=new Date(d.getFullYear(),d.getMonth()+1,0);
-    const sd=(d.getDay()+6)%7,today=sod(new Date());
+    const calDate=new Date(S.calYear ?? new Date().getFullYear(), S.calMonth ?? new Date().getMonth(), 1);
+    S.calYear=calDate.getFullYear();S.calMonth=calDate.getMonth();
+    let subtitle=MONTHS[calDate.getMonth()]+' '+calDate.getFullYear();
+    const last=new Date(calDate.getFullYear(),calDate.getMonth()+1,0);
+    const sd=(calDate.getDay()+6)%7,today=sod(new Date());
     let html = `<div class="cv-nav"><button onclick="S.calMonth--;renderAll()">Prev</button><button onclick="S.calMonth=new Date().getMonth();S.calYear=new Date().getFullYear();renderAll()">Today</button><button onclick="S.calMonth++;renderAll()">Next</button></div>`;
     html+='<div class="cv-dh-container">'+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div class="cv-dh">${x}</div>`).join('')+'</div><div class="cv-grid">';
-    const prev=new Date(d.getFullYear(),d.getMonth(),0);
+    const prev=new Date(calDate.getFullYear(),calDate.getMonth(),0);
     for(let i=sd-1;i>=0;i--)html+=`<div class="cv-day other"><span class="cv-d-num">${prev.getDate()-i}</span></div>`;
-    for(let d=1;d<=last.getDate();d++){
-      const dt=new Date(d.getFullYear(),d.getMonth(),d),iT=dt.getTime()===today.getTime();
+    for(let day=1;day<=last.getDate();day++){
+      const dt=new Date(calDate.getFullYear(),calDate.getMonth(),day),iT=dt.getTime()===today.getTime();
       const dayTasks=S.tasks.filter(t=>t.due&&sod(new Date(t.due)).getTime()===dt.getTime());
       let th='';
       dayTasks.forEach(t=>{
@@ -924,7 +924,7 @@ function renderCalendarView(title, sub, list) {
         const time=t.due&&t.due.includes('T')&&t.due.split('T')[1]!=='23:59'?t.due.split('T')[1]+' ':'';
         th+=`<div class="cv-task cp${pc}${t.done?' done':''}" onclick="openEdit('${t.id}')" title="${esc(t.text)}">${t.done?'\u2713 ':''}${time}${esc(t.text)}</div>`
       });
-      html+=`<div class="cv-day${iT?' today':''}"><span class="cv-d-num">${d}</span>${th}</div>`
+      html+=`<div class="cv-day${iT?' today':''}"><span class="cv-d-num">${day}</span>${th}</div>`
     }
     const rem=7-((sd+last.getDate())%7);if(rem<7)for(let i=1;i<=rem;i++)html+=`<div class="cv-day other"><span class="cv-d-num">${i}</span></div>`;
     html+='</div>'

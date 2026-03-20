@@ -326,20 +326,22 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
       <div class="add-btn" id="add-project-link"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;margin-right:8px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add project</div>
     </div>
     <div class="sidebar-section">
-      <div class="sidebar-section-header">Labels<button id="add-label-btn"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button></div>
+      <div class="sidebar-section-header">Labels<button id="add-label-btn"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button></div>
       <div id="labels-list"></div>
-      <div class="add-btn" id="add-label-link"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;margin-right:8px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add label</div>
-    </div>
-    <div class="gcal-section">
-      <button class="gcal-btn" id="gcal-btn" onclick="gcalConnect()"><span class="gcal-icon">📅</span> Connect Google Calendar</button>
+      <div class="add-btn" id="add-label-link"><svg fill="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;margin-right:8px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add label</div>
     </div>
   </aside>
   <div class="bottom-app-bar" id="bottom-app-bar">
     <button class="bottom-app-bar-icon active" id="mobile-hamburger-btn"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
-    <button class="bottom-app-bar-icon" style="margin-left:auto"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></button>
+    <button class="bottom-app-bar-icon" id="mobile-search-btn" style="margin-left:auto"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></button>
   </div>
   <div id="main">
-    <div class="main-header"><h1 id="view-title">Inbox</h1><div class="subtitle" id="view-subtitle"></div></div>
+    <div class="main-header">
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+        <div><h1 id="view-title">Inbox</h1><div class="subtitle" id="view-subtitle"></div></div>
+        <button id="desktop-search-btn" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;padding:8px;border-radius:50%;display:flex;align-items:center;justify-content:center"><svg fill="currentColor" viewBox="0 0 24 24" style="width:24px;height:24px"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></button>
+      </div>
+    </div>
     <div class="main-content">
       <button class="fab" id="quick-add" title="Add task"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
       <div class="fs-modal" id="add-panel">
@@ -363,6 +365,14 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
       <div id="task-list"></div>
     </div>
   </div>
+</div>
+<!-- SEARCH MODAL -->
+<div class="fs-modal" id="search-modal">
+  <div class="fs-header" style="border-bottom:1px solid var(--border)">
+    <button id="search-cancel"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    <div class="fs-input-container" style="flex:1;margin-left:8px"><input type="text" class="fs-input" id="search-query" placeholder="Search tasks..." style="font-size:16px" autocomplete="off" oninput="doSearch()"></div>
+  </div>
+  <div class="fs-content" style="padding-top:16px" id="search-results"></div>
 </div>
 <!-- EDIT MODAL -->
 <div class="fs-modal" id="edit-modal">
@@ -588,7 +598,7 @@ function secDate(d){
   if(diff===0)return 'Today \u2014 '+ds;if(diff===1)return 'Tomorrow \u2014 '+dn+' '+ds;return dn+' \u2014 '+ds
 }
 
-function sortT(a){return[...a].sort((x,y)=>{if(x.priority!==y.priority)return x.priority-y.priority;if(x.due&&y.due)return new Date(x.due)-new Date(y.due);if(x.due)return -1;if(y.due)return 1;return(y.createdAt||0)-(x.createdAt||0)})}
+function sortT(a){return [...a].sort((x,y)=>{if(x.priority!==y.priority)return x.priority-y.priority;if(x.due&&y.due)return new Date(x.due)-new Date(y.due);if(x.due)return -1;if(y.due)return 1;return(y.createdAt||0)-(x.createdAt||0)})}
 
 // CRUD
 async function dbAdd(c,d){
@@ -707,6 +717,7 @@ $('project-delete-btn').onclick=()=>{
     if(S.view==='project'&&S.projId===id)switchView('inbox')
   })
 };
+function closeProjModal(){$('project-modal').classList.remove('open')}
 
 // LABEL MODAL
 function openLabelModal(id){
@@ -734,12 +745,14 @@ $('label-delete-btn').onclick=()=>{
     if(S.view==='label'&&S.labelName===(l&&l.name))switchView('inbox')
   })
 };
+function closeLabelModal(){$('label-modal').classList.remove('open')}
 
 // CONFIRM
 let cfCb=null;
 function showConfirm(m,cb){$('confirm-msg').textContent=m;cfCb=cb;$('confirm-dialog').classList.add('open')}
 $('confirm-cancel').onclick=()=>{$('confirm-dialog').classList.remove('open');cfCb=null};
 $('confirm-ok').onclick=()=>{if(cfCb)cfCb();$('confirm-dialog').classList.remove('open');cfCb=null};
+function closeConfirm(){$('confirm-dialog').classList.remove('open');cfCb=null}
 
 // COLOURS
 function buildColours(){$('colour-grid').innerHTML=COLOURS.map((c,i)=>`<div class="colour-swatch${i===0?' selected':''}" data-c="${c}" style="background:${c}"></div>`).join('')}
@@ -760,6 +773,8 @@ function closeAdd(){$('add-panel').classList.remove('open');$('quick-add').style
 $('quick-add').onclick=openAdd;$('cancel-add').onclick=closeAdd;
 const toggleSb=()=>{$('sidebar').classList.toggle('open');$('sidebar-overlay').classList.toggle('open')};
 $('hamburger-btn').onclick=toggleSb;
+$('mobile-hamburger-btn').onclick=toggleSb;
+$('sidebar-overlay').onclick=toggleSb;
 const mhb=$('mobile-hamburger-btn');if(mhb)mhb.onclick=toggleSb;
 $('sidebar-overlay').onclick=()=>{$('sidebar').classList.remove('open');$('sidebar-overlay').classList.remove('open')};
 
@@ -785,7 +800,7 @@ function renderAll(){renderSidebar();renderMain()}
 function renderSidebar(){
   const T=S.tasks;
   const ic=T.filter(t=>!t.done&&t.projectId==='inbox').length;
-  const tc=T.filter(t=>!t.done&&t.due&&(isToday(t.due)||isOverdue(t.due))).length;
+  const tc=T.filter(t=>!t.done&&t.due&&(isToday(t.due) || isOverdue(t.due))).length;
   const uc=T.filter(t=>{if(t.done||!t.due)return false;const d=dayDiff(new Date(),t.due);return d>=0&&d<=7}).length;
   const cc=T.filter(t=>t.done).length;
   $('cnt-inbox').textContent=ic||'';$('cnt-today').textContent=tc||'';$('cnt-upcoming').textContent=uc||'';$('cnt-completed').textContent=cc||'';
@@ -893,8 +908,8 @@ function renderCalendarView(title, sub, list) {
     html+='<div class="cv-dh-container">'+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div class="cv-dh">${x}</div>`).join('')+'</div><div class="cv-grid">';
     const prev=new Date(d.getFullYear(),d.getMonth(),0);
     for(let i=sd-1;i>=0;i--)html+=`<div class="cv-day other"><span class="cv-d-num">${prev.getDate()-i}</span></div>`;
-    for(let i=1;i<=last.getDate();i++){
-      const dt=new Date(d.getFullYear(),d.getMonth(),i),isTd=dt.getTime()===today.getTime();
+    for(let d=1;d<=last.getDate();d++){
+      const dt=new Date(d.getFullYear(),d.getMonth(),d),iT=dt.getTime()===today.getTime();
       const dayTasks=S.tasks.filter(t=>t.due&&sod(new Date(t.due)).getTime()===dt.getTime());
       let th='';
       dayTasks.forEach(t=>{
@@ -902,7 +917,7 @@ function renderCalendarView(title, sub, list) {
         const time=t.due&&t.due.includes('T')&&t.due.split('T')[1]!=='23:59'?t.due.split('T')[1]+' ':'';
         th+=`<div class="cv-task cp${pc}${t.done?' done':''}" onclick="openEdit('${t.id}')" title="${esc(t.text)}">${t.done?'\u2713 ':''}${time}${esc(t.text)}</div>`
       });
-      html+=`<div class="cv-day${isTd?' today':''}"><span class="cv-d-num">${i}</span>${th}</div>`
+      html+=`<div class="cv-day${iT?' today':''}"><span class="cv-d-num">${d}</span>${th}</div>`
     }
     const rem=7-((sd+last.getDate())%7);if(rem<7)for(let i=1;i<=rem;i++)html+=`<div class="cv-day other"><span class="cv-d-num">${i}</span></div>`;
     html+='</div>'
@@ -910,6 +925,33 @@ function renderCalendarView(title, sub, list) {
 }
 
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+// SEARCH
+function openSearch(){
+  $('search-modal').classList.add('open');
+  $('search-query').value='';
+  $('search-results').innerHTML='';
+  setTimeout(()=>$('search-query').focus(),50);
+}
+function doSearch(){
+  const q=$('search-query').value.toLowerCase().trim();
+  const res=$('search-results');
+  if(!q){res.innerHTML=emptyH(SVGS.search,'Type to search');return}
+  const match=S.tasks.filter(t=>
+    t.text.toLowerCase().includes(q) ||
+    (t.description||'').toLowerCase().includes(q) ||
+    (t.labels||[]).some(l=>l.toLowerCase().includes(q))
+  );
+  if(!match.length){res.innerHTML=emptyH(SVGS.search,'No tasks matching "'+esc(q)+'"');return}
+  res.innerHTML=match.map(t=>taskH(t)).join('');
+}
+$('search-cancel').onclick=()=>{
+  $('search-modal').classList.remove('open');
+  $('search-query').value='';
+  $('search-results').innerHTML='';
+};
+$('desktop-search-btn').onclick=openSearch;
+$('mobile-search-btn').onclick=openSearch;
+
 function linkify(str){
   if(!str)return'';
   return esc(str).replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank" onclick="event.stopPropagation()" style="color:var(--p3);text-decoration:underline">$1</a>');
@@ -956,10 +998,19 @@ document.addEventListener('keydown',e=>{
     if(e.key==='Enter'&&$('add-panel').classList.contains('open')&&e.target.id==='new-task-name'){e.preventDefault();$('btn-add-task').click()}
     return
   }
-  if(e.key==='q'||e.key==='Q'){e.preventDefault();openAdd()}
-  if(e.key==='Escape'){closeAdd();$('edit-modal').classList.remove('open');$('project-modal').classList.remove('open');$('label-modal').classList.remove('open');$('confirm-dialog').classList.remove('open');DP.close()}
-  if(e.key==='g'||e.key==='G'){gP=true;setTimeout(()=>gP=false,800);return}
-  if(gP){if(e.key==='i'||e.key==='I')switchView('inbox');if(e.key==='t'||e.key==='T')switchView('today');if(e.key==='u'||e.key==='U')switchView('upcoming');gP=false}
+  if(e.key==='Esc'||e.key==='Escape'){closeAdd();$('edit-modal').classList.remove('open');$('search-modal').classList.remove('open');closeProjModal();closeLabelModal();closeConfirm();DP.close()}
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openSearch()}
+  if(!e.ctrlKey&&!e.metaKey&&e.key.length===1&&!$('add-panel').classList.contains('open')&&!$('edit-modal').classList.contains('open')&&!$('search-modal').classList.contains('open')&&!document.querySelector('input:focus,textarea:focus,select:focus')){
+    if(gP){
+      if(e.key==='i')switchView('inbox');
+      else if(e.key==='t')switchView('today');
+      else if(e.key==='u')switchView('upcoming');
+      gP=false;return;
+    }
+    if(e.key==='g'){gP=true;setTimeout(()=>gP=false,1000);return}
+    if(e.key==='q'||e.key==='a'){e.preventDefault();openAdd()}
+    if(e.key==='/'){e.preventDefault();openSearch()}
+  }
 });
 
 // FILE ATTACHMENT HANDLERS

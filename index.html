@@ -317,6 +317,7 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
     <nav class="nav-section">
       <div class="nav-item active" data-view="inbox"><span class="nav-icon"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5v-3h3.56c.69 1.19 1.97 2 3.44 2s2.75-.81 3.44-2H19v3zm0-5h-4.99c0 1.1-.9 2-2 2s-2-.9-2-2H5V5h14v9z"/></svg></span>Inbox<span class="count" id="cnt-inbox"></span></div>
       <div class="nav-item" data-view="today"><span class="nav-icon"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg></span>Today<span class="count" id="cnt-today"></span></div>
+      <div class="nav-item" data-view="overdue"><span class="nav-icon" style="color:var(--due-overdue)"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M11 15h2v2h-2zm0-8h2v6zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg></span>Overdue<span class="count" id="cnt-overdue" style="color:var(--due-overdue)"></span></div>
       <div class="nav-item" data-view="upcoming"><span class="nav-icon"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg></span>Upcoming<span class="count" id="cnt-upcoming"></span></div>
       <div class="nav-item" data-view="calendar"><span class="nav-icon"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg></span>Calendar</div>
       <div class="nav-item" data-view="completed"><span class="nav-icon"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>Completed<span class="count" id="cnt-completed"></span></div>
@@ -806,21 +807,22 @@ window.renderAll=renderAll;
 
 function renderSidebar(){
   const T=S.tasks;
-  const ic=T.filter(t=>!t.done&&t.projectId==='inbox').length;
-  const tc=T.filter(t=>!t.done&&t.due&&(isToday(t.due) || isOverdue(t.due))).length;
-  const uc=T.filter(t=>{if(t.done||!t.due)return false;const d=dayDiff(new Date(),t.due);return d>=0&&d<=7}).length;
+  const ic=T.filter(t=>!t.done&&t.projectId==='inbox'&&(!t.due||!isOverdue(t.due))).length;
+  const tc=T.filter(t=>!t.done&&t.due&&isToday(t.due)).length;
+  const oc=T.filter(t=>!t.done&&t.due&&isOverdue(t.due)).length;
+  const uc=T.filter(t=>{if(t.done||!t.due||isOverdue(t.due))return false;const d=dayDiff(new Date(),t.due);return d>=0&&d<=7}).length;
   const cc=T.filter(t=>t.done).length;
-  $('cnt-inbox').textContent=ic||'';$('cnt-today').textContent=tc||'';$('cnt-upcoming').textContent=uc||'';$('cnt-completed').textContent=cc||'';
+  $('cnt-inbox').textContent=ic||'';$('cnt-today').textContent=tc||'';$('cnt-overdue').textContent=oc||'';$('cnt-upcoming').textContent=uc||'';$('cnt-completed').textContent=cc||'';
 
   $('projects-list').innerHTML=S.projects.map(p=>{
-    const c=T.filter(t=>!t.done&&t.projectId===p.id).length;
+    const c=T.filter(t=>!t.done&&t.projectId===p.id&&(!t.due||!isOverdue(t.due))).length;
     return `<div class="project-item${S.view==='project'&&S.projId===p.id?' active':''}" data-id="${p.id}" oncontextmenu="event.preventDefault();openProjModal('${p.id}')">
       <div class="project-dot" style="background:${p.colour}"></div>${esc(p.name)}<span class="count">${c||''}</span></div>`
   }).join('');
   document.querySelectorAll('.project-item').forEach(n=>n.onclick=()=>switchView('project',n.dataset.id));
 
   $('labels-list').innerHTML=S.labels.map(l=>{
-    const c=T.filter(t=>!t.done&&(t.labels||[]).includes(l.name)).length;
+    const c=T.filter(t=>!t.done&&(t.labels||[]).includes(l.name)&&(!t.due||!isOverdue(t.due))).length;
     return `<div class="label-item${S.view==='label'&&S.labelName===l.name?' active':''}" data-name="${esc(l.name)}" data-id="${l.id}">
       <span class="nav-icon">\u{1F3F7}</span>${esc(l.name)}<span class="count">${c||''}</span></div>`
   }).join('');
@@ -871,19 +873,21 @@ function renderMain(){
   }
 
   if(v==='inbox'){
-    title.textContent='Inbox'; tasks=S.tasks.filter(t=>!t.done && t.projectId==='inbox');
+    title.textContent='Inbox'; tasks=S.tasks.filter(t=>!t.done && t.projectId==='inbox' && (!t.due||!isOverdue(t.due)));
   }else if(v==='today'){
-    title.textContent='Today'; tasks=S.tasks.filter(t=>!t.done && t.due && (isToday(t.due) || isOverdue(t.due)));
+    title.textContent='Today'; tasks=S.tasks.filter(t=>!t.done && t.due && isToday(t.due));
     subtitle=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  }else if(v==='overdue'){
+    title.textContent='Overdue'; tasks=S.tasks.filter(t=>!t.done && t.due && isOverdue(t.due));
   }else if(v==='upcoming'){
-    title.textContent='Upcoming'; tasks=S.tasks.filter(t=>!t.done && t.due); subtitle='Next 7 days';
+    title.textContent='Upcoming'; tasks=S.tasks.filter(t=>!t.done && t.due && !isOverdue(t.due)); subtitle='Next 7 days';
   }else if(v==='completed'){
     title.textContent='Completed'; tasks=S.tasks.filter(t=>t.done);
   }else if(v==='project'){
     const p=S.projects.find(x=>x.id===S.projId); title.textContent=p?p.name:'Project';
-    tasks=S.tasks.filter(t=>!t.done && t.projectId===S.projId);
+    tasks=S.tasks.filter(t=>!t.done && t.projectId===S.projId && (!t.due||!isOverdue(t.due)));
   }else if(v==='label'){
-    title.textContent=S.labelName||'Label'; tasks=S.tasks.filter(t=>!t.done && (t.labels||[]).includes(S.labelName));
+    title.textContent=S.labelName||'Label'; tasks=S.tasks.filter(t=>!t.done && (t.labels||[]).includes(S.labelName) && (!t.due||!isOverdue(t.due)));
   }
 
   const grouped = groupTasks(tasks);

@@ -509,6 +509,7 @@ function lsG(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch{return[
 function lsS(k,v){localStorage.setItem(k,JSON.stringify(v))}
 
 const S={tasks:[],projects:[],labels:[],view:'inbox',projId:null,labelName:null};
+window.S=S;
 const $=id=>document.getElementById(id);
 
 // AUTH UI
@@ -801,6 +802,7 @@ document.querySelectorAll('.nav-item').forEach(n=>n.onclick=()=>switchView(n.dat
 
 // RENDER
 function renderAll(){renderSidebar();renderMain()}
+window.renderAll=renderAll;
 
 function renderSidebar(){
   const T=S.tasks;
@@ -949,6 +951,7 @@ function doSearch(){
   if(!match.length){res.innerHTML=emptyH(SVGS.search,'No tasks matching "'+esc(q)+'"');return}
   res.innerHTML=match.map(t=>taskH(t)).join('');
 }
+window.doSearch=doSearch;
 $('search-cancel').onclick=()=>{
   $('search-modal').classList.remove('open');
   $('search-query').value='';

@@ -865,19 +865,19 @@ function renderMain(){
   }
 
   if(v==='inbox'){
-    title.textContent='Inbox'; tasks=S.tasks.filter(t=>t.projectId==='inbox');
+    title.textContent='Inbox'; tasks=S.tasks.filter(t=>!t.done && t.projectId==='inbox');
   }else if(v==='today'){
-    title.textContent='Today'; tasks=S.tasks.filter(t=>t.due && (isToday(t.due) || isOverdue(t.due)));
+    title.textContent='Today'; tasks=S.tasks.filter(t=>!t.done && t.due && (isToday(t.due) || isOverdue(t.due)));
     subtitle=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
   }else if(v==='upcoming'){
-    title.textContent='Upcoming'; tasks=S.tasks.filter(t=>t.due); subtitle='Next 7 days';
+    title.textContent='Upcoming'; tasks=S.tasks.filter(t=>!t.done && t.due); subtitle='Next 7 days';
   }else if(v==='completed'){
     title.textContent='Completed'; tasks=S.tasks.filter(t=>t.done);
   }else if(v==='project'){
     const p=S.projects.find(x=>x.id===S.projId); title.textContent=p?p.name:'Project';
-    tasks=S.tasks.filter(t=>t.projectId===S.projId);
+    tasks=S.tasks.filter(t=>!t.done && t.projectId===S.projId);
   }else if(v==='label'){
-    title.textContent=S.labelName||'Label'; tasks=S.tasks.filter(t=>(t.labels||[]).includes(S.labelName));
+    title.textContent=S.labelName||'Label'; tasks=S.tasks.filter(t=>!t.done && (t.labels||[]).includes(S.labelName));
   }
 
   const grouped = groupTasks(tasks);

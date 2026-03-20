@@ -331,6 +331,9 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
       <div id="labels-list"></div>
       <div class="add-btn" id="add-label-link"><svg fill="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;margin-right:8px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add label</div>
     </div>
+    <div class="sidebar-section gcal-section" style="padding-top:12px;border-top:1px solid var(--border)">
+      <button class="gcal-btn" id="gcal-btn" onclick="gcalConnect()"><span class="gcal-icon">📅</span> Connect Google Calendar</button>
+    </div>
   </aside>
   <div class="bottom-app-bar" id="bottom-app-bar">
     <button class="bottom-app-bar-icon active" id="mobile-hamburger-btn"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
@@ -579,6 +582,7 @@ setInterval(() => {
 }, 60000);
 
 // DATE HELPERS
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 function sod(d){const r=new Date(d);r.setHours(0,0,0,0);return r}
 function isToday(d){return sod(new Date(d)).getTime()===sod(new Date()).getTime()}
 function isOverdue(d){return new Date(d)<new Date()&&!isToday(d)}
@@ -1023,7 +1027,7 @@ async function handleEditFiles(inp){for(const f of inp.files){if(f.size>10*1024*
 window.handleNewFiles=handleNewFiles;window.handleEditFiles=handleEditFiles;
 
 // DATE PICKER
-const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const SHORT_MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DP={target:null,month:0,year:0,sel:null,
   open(trigEl,targetId){
     this.target=targetId;const v=$(targetId).value;
@@ -1047,7 +1051,7 @@ const DP={target:null,month:0,year:0,sel:null,
     this._sc=sc
   },
   renderCal(){
-    $('dp-month-label').textContent=MONTHS[this.month]+' '+this.year;
+    $('dp-month-label').textContent=SHORT_MONTHS[this.month]+' '+this.year;
     const f=new Date(this.year,this.month,1),last=new Date(this.year,this.month+1,0);
     const sd=(f.getDay()+6)%7,today=sod(new Date());
     let h=['M','T','W','T','F','S','S'].map(d=>`<div class="dp-dh">${d}</div>`).join('');

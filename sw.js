@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tasks-cache-v10';
+const CACHE_NAME = 'tasks-cache-v11';
 const urlsToCache = [
   '/',
   '/index.html',

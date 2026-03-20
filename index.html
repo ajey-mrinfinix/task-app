@@ -116,10 +116,11 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
 .chip-label{background:#f0efff;color:#6c5ce7}
 .chip-priority{font-size:10px;padding:2px 6px;border-radius:4px}
 .chip-priority.cp1{background:#fdeeed;color:var(--p1)}.chip-priority.cp2{background:#fff5e6;color:var(--p2)}.chip-priority.cp3{background:#eef1ff;color:var(--p3)}
-.task-actions{display:none;gap:4px;position:absolute;right:8px;top:8px;background:#fff;padding:2px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.task-actions{display:none;gap:4px;position:absolute;right:8px;top:8px;background:var(--sidebar-bg);padding:2px;border-radius:6px;border:1px solid var(--border-strong);box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .task-item:hover .task-actions{display:flex}
-.task-actions button{background:none;border:none;cursor:pointer;font-size:14px;padding:4px 6px;border-radius:4px;color:var(--text-muted);transition:all .15s}
-.task-actions button:hover{background:#f5f5f5;color:var(--text-primary)}
+.task-actions button{background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px 6px;border-radius:4px;color:var(--text-muted);transition:all .15s}
+.task-actions button svg{width:18px;height:18px;fill:currentColor}
+.task-actions button:hover{background:var(--sidebar-hover);color:var(--text-primary)}
 /* SUBTASKS */
 .subtask-list{margin-left:30px;margin-top:4px}
 .subtask-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}

@@ -657,6 +657,31 @@ window.toggleSub=toggleSub;window.showStInput=showStInput;window.addSub=addSub;
 window.removeNewAttach=i=>{newAttachments.splice(i,1);renderNewAttach()};
 window.removeEditAttach=i=>{editAttachments.splice(i,1);renderEditAttach()};
 
+// MODAL HISTORY SYSTEM
+let activeModals = [];
+function openModal(id){
+  const el = $(id); if(!el)return;
+  if(!el.classList.contains('open')){
+    el.classList.add('open');
+    activeModals.push(id);
+    if(location.hash !== '#modal') history.pushState({modal:true}, '', '#modal');
+  }
+}
+function closeModal(id){
+  const el = $(id); if(!el)return;
+  if(el.classList.contains('open')){
+    el.classList.remove('open');
+    activeModals = activeModals.filter(x=>x!==id);
+    if(activeModals.length===0 && location.hash==='#modal') history.back();
+  }
+}
+window.addEventListener('popstate', ()=>{
+  if(location.hash !== '#modal'){
+    activeModals.forEach(id=>{const m=$(id);if(m)m.classList.remove('open')});
+    activeModals=[];
+  }
+});
+
 let editAttachments=[];
 function openEdit(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
@@ -666,10 +691,10 @@ function openEdit(id){
   popProj('edit-task-project',t.projectId||'inbox');
   $('edit-task-link').value=t.link||'';
   renderEditLabels(t.labels||[]);
-  $('edit-modal').classList.add('open')
+  openModal('edit-modal');
 }
 window.openEdit=openEdit;
-$('edit-cancel').onclick=()=>$('edit-modal').classList.remove('open');
+$('edit-cancel').onclick=()=>closeModal('edit-modal');
 $('edit-save').onclick=async()=>{
   const id=$('edit-task-id').value;
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
@@ -692,10 +717,10 @@ $('edit-save').onclick=async()=>{
     }else if(due){
       const eid=await gcalSync(newData);if(eid)await dbUp('tasks',id,{gcalEventId:eid});
     }
-    $('edit-modal').classList.remove('open')
+    closeModal('edit-modal');
   }finally{$('edit-save').disabled=false}
 };
-$('edit-delete').onclick=()=>{const id=$('edit-task-id').value;const t=S.tasks.find(x=>x.id===id);showConfirm('Delete this task?',async()=>{if(t&&t.gcalEventId)await gcalDelete(t.gcalEventId);await dbDel('tasks',id);$('edit-modal').classList.remove('open')})};
+$('edit-delete').onclick=()=>{const id=$('edit-task-id').value;const t=S.tasks.find(x=>x.id===id);showConfirm('Delete this task?',async()=>{if(t&&t.gcalEventId)await gcalDelete(t.gcalEventId);await dbDel('tasks',id);closeModal('edit-modal');})};
 
 // PROJECT MODAL
 function openProjModal(id){
@@ -704,27 +729,27 @@ function openProjModal(id){
   if(id){const p=S.projects.find(x=>x.id===id);$('project-name-input').value=p?p.name:'';
     document.querySelectorAll('.colour-swatch').forEach(s=>s.classList.toggle('selected',s.dataset.c===(p&&p.colour)))}
   else{$('project-name-input').value='';document.querySelectorAll('.colour-swatch').forEach((s,i)=>s.classList.toggle('selected',i===0))}
-  $('project-modal').classList.add('open')
+  openModal('project-modal');
 }
 window.openProjModal=openProjModal;
 $('add-project-btn').onclick=()=>openProjModal();$('add-project-link').onclick=()=>openProjModal();
-$('project-cancel').onclick=()=>$('project-modal').classList.remove('open');
+$('project-cancel').onclick=()=>closeModal('project-modal');
 $('project-save').onclick=async()=>{
   const n=$('project-name-input').value.trim();if(!n)return;
   const c=document.querySelector('.colour-swatch.selected')?.dataset.c||COLOURS[0];
   const id=$('project-edit-id').value;
   if(id)await dbUp('projects',id,{name:n,colour:c});else await dbAdd('projects',{name:n,colour:c});
-  $('project-modal').classList.remove('open')
+  closeModal('project-modal');
 };
 $('project-delete-btn').onclick=()=>{
   const id=$('project-edit-id').value;
   showConfirm('Delete project? Tasks move to Inbox.',async()=>{
     for(const t of S.tasks.filter(t=>t.projectId===id))await dbUp('tasks',t.id,{projectId:'inbox'});
-    await dbDel('projects',id);$('project-modal').classList.remove('open');
+    await dbDel('projects',id);closeModal('project-modal');
     if(S.view==='project'&&S.projId===id)switchView('inbox')
   })
 };
-function closeProjModal(){$('project-modal').classList.remove('open')}
+function closeProjModal(){closeModal('project-modal')}
 
 // LABEL MODAL
 function openLabelModal(id){
@@ -732,34 +757,34 @@ function openLabelModal(id){
   $('label-delete-btn').style.display=id?'inline-block':'none';
   if(id){const l=S.labels.find(x=>x.id===id);$('label-name-input').value=l?l.name:''}
   else $('label-name-input').value='';
-  $('label-modal').classList.add('open')
+  openModal('label-modal');
 }
 window.openLabelModal=openLabelModal;
 $('add-label-btn').onclick=()=>openLabelModal();$('add-label-link').onclick=()=>openLabelModal();
-$('label-cancel').onclick=()=>$('label-modal').classList.remove('open');
+$('label-cancel').onclick=()=>closeModal('label-modal');
 $('label-save').onclick=async()=>{
   const n=$('label-name-input').value.trim();if(!n)return;
   const id=$('label-edit-id').value;
   if(id){const old=S.labels.find(x=>x.id===id);if(old&&old.name!==n){for(const t of S.tasks){if((t.labels||[]).includes(old.name)){const nl=t.labels.map(l=>l===old.name?n:l);await dbUp('tasks',t.id,{labels:nl})}}await dbUp('labels',id,{name:n})}else await dbUp('labels',id,{name:n})}
   else{if(!S.labels.find(l=>l.name===n))await dbAdd('labels',{name:n})}
-  $('label-modal').classList.remove('open')
+  closeModal('label-modal');
 };
 $('label-delete-btn').onclick=()=>{
   const id=$('label-edit-id').value;const l=S.labels.find(x=>x.id===id);
   showConfirm('Delete label "'+((l&&l.name)||'')+'"?',async()=>{
     if(l)for(const t of S.tasks){if((t.labels||[]).includes(l.name))await dbUp('tasks',t.id,{labels:t.labels.filter(x=>x!==l.name)})}
-    await dbDel('labels',id);$('label-modal').classList.remove('open');
+    await dbDel('labels',id);closeModal('label-modal');
     if(S.view==='label'&&S.labelName===(l&&l.name))switchView('inbox')
   })
 };
-function closeLabelModal(){$('label-modal').classList.remove('open')}
+function closeLabelModal(){closeModal('label-modal')}
 
 // CONFIRM
 let cfCb=null;
-function showConfirm(m,cb){$('confirm-msg').textContent=m;cfCb=cb;$('confirm-dialog').classList.add('open')}
-$('confirm-cancel').onclick=()=>{$('confirm-dialog').classList.remove('open');cfCb=null};
-$('confirm-ok').onclick=()=>{if(cfCb)cfCb();$('confirm-dialog').classList.remove('open');cfCb=null};
-function closeConfirm(){$('confirm-dialog').classList.remove('open');cfCb=null}
+function showConfirm(m,cb){$('confirm-msg').textContent=m;cfCb=cb;openModal('confirm-dialog');}
+$('confirm-cancel').onclick=()=>{closeModal('confirm-dialog');cfCb=null};
+$('confirm-ok').onclick=()=>{if(cfCb)cfCb();closeModal('confirm-dialog');cfCb=null};
+function closeConfirm(){closeModal('confirm-dialog');cfCb=null}
 
 // COLOURS
 function buildColours(){$('colour-grid').innerHTML=COLOURS.map((c,i)=>`<div class="colour-swatch${i===0?' selected':''}" data-c="${c}" style="background:${c}"></div>`).join('')}
@@ -945,7 +970,7 @@ function renderCalendarView(title, sub, list) {
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 // SEARCH
 function openSearch(){
-  $('search-modal').classList.add('open');
+  openModal('search-modal');
   $('search-query').value='';
   $('search-results').innerHTML='';
   setTimeout(()=>$('search-query').focus(),50);
@@ -964,7 +989,7 @@ function doSearch(){
 }
 window.doSearch=doSearch;
 $('search-cancel').onclick=()=>{
-  $('search-modal').classList.remove('open');
+  closeModal('search-modal');
   $('search-query').value='';
   $('search-results').innerHTML='';
 };
@@ -1013,11 +1038,11 @@ let gP=false;
 document.addEventListener('keydown',e=>{
   const tag=e.target.tagName;
   if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'){
-    if(e.key==='Escape'){closeAdd();$('edit-modal').classList.remove('open');DP.close();e.target.blur()}
+    if(e.key==='Escape'){closeAdd();closeModal('edit-modal');DP.close();e.target.blur()}
     if(e.key==='Enter'&&$('add-panel').classList.contains('open')&&e.target.id==='new-task-name'){e.preventDefault();$('btn-add-task').click()}
     return
   }
-  if(e.key==='Esc'||e.key==='Escape'){closeAdd();$('edit-modal').classList.remove('open');$('search-modal').classList.remove('open');closeProjModal();closeLabelModal();closeConfirm();DP.close()}
+  if(e.key==='Esc'||e.key==='Escape'){closeAdd();closeModal('edit-modal');closeModal('search-modal');closeProjModal();closeLabelModal();closeConfirm();DP.close()}
   if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openSearch()}
   if(!e.ctrlKey&&!e.metaKey&&e.key.length===1&&!$('add-panel').classList.contains('open')&&!$('edit-modal').classList.contains('open')&&!$('search-modal').classList.contains('open')&&!document.querySelector('input:focus,textarea:focus,select:focus')){
     if(gP){

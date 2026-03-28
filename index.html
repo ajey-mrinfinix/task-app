@@ -243,6 +243,18 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
 .gcal-btn.connected{color:#058527}
 .gcal-icon{font-size:16px}
 .chip-gcal{background:#e8f5e9;color:#058527}
+/* WHATSAPP */
+.wa-section{padding:4px 8px}
+.wa-number-row{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.06);transition:all .15s}
+.wa-number-row:hover{background:rgba(255,255,255,.1)}
+.wa-number-row input{flex:1;background:transparent;border:none;outline:none;color:var(--sidebar-text);font-size:13px;font-family:inherit;min-width:0}
+.wa-number-row input::placeholder{color:var(--sidebar-muted)}
+.wa-number-row .wa-icon{width:20px;height:20px;fill:#25D366;flex-shrink:0}
+.wa-toggle{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.wa-toggle input[type="checkbox"]{accent-color:#25D366;width:16px;height:16px;cursor:pointer}
+.wa-toggle-label{font-size:13px;color:var(--text-muted)}
+.chip-wa{background:rgba(37,211,102,.15);color:#25D366}
+.wa-share-btn{color:#25D366!important}
 /* CALENDAR VIEW */
 .cv-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;margin-bottom:32px}
 .cv-dh{background:var(--bg);padding:8px;font-size:12px;font-weight:600;color:var(--text-muted);text-align:center;border-bottom:1px solid var(--border)}
@@ -335,6 +347,13 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
     <div class="sidebar-section gcal-section" style="padding-top:12px;border-top:1px solid var(--border)">
       <button class="gcal-btn" id="gcal-btn" onclick="gcalConnect()"><span class="gcal-icon">📅</span> Connect Google Calendar</button>
     </div>
+    <div class="sidebar-section wa-section" style="padding-top:4px">
+      <div class="wa-number-row">
+        <svg class="wa-icon" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        <input type="tel" id="wa-phone-input" placeholder="WhatsApp number (e.g. +91...)" value="">
+        <button onclick="saveWaPhone()" style="background:none;border:none;color:#25D366;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">Save</button>
+      </div>
+    </div>
   </aside>
   <div class="bottom-app-bar" id="bottom-app-bar">
     <button class="bottom-app-bar-icon active" id="mobile-hamburger-btn"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
@@ -365,6 +384,7 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
           <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg></div></div><div class="fs-input-container"><input type="text" class="fs-input" id="new-task-link" placeholder="Add link URL"></div></div>
           <div class="fs-row" onclick="document.getElementById('new-task-files').click()"><div class="fs-icon"><div class="fs-icon-svg"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 6V17.5c0 2.48-2.02 4.5-4.5 4.5s-4.5-2.02-4.5-4.5V5c0-1.66 1.34-3 3-3s3 1.34 3 3v11.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5V6H9v11.5c0 2.48 2.02 4.5 4.5 4.5s4.5-2.02 4.5-4.5V5c0-3.31-2.69-6-6-6s-6 2.69-6 6v12.5c0 4.14 3.36 7.5 7.5 7.5s7.5-3.36 7.5-7.5V6h-1.5z"/></svg></div></div><div class="fs-value empty">Add attachment</div><input type="file" id="new-task-files" multiple style="display:none" onchange="handleNewFiles(this)"></div>
           <div id="new-attach-preview" class="attach-preview" style="padding-left:40px"></div>
+          <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg" style="fill:#25D366"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div></div><div class="fs-input-container"><label class="wa-toggle"><input type="checkbox" id="new-task-wa"><span class="wa-toggle-label">WhatsApp Reminder</span></label></div></div>
         </div>
       </div>
       <div id="task-list"></div>
@@ -397,6 +417,7 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
     <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg></div></div><div class="fs-input-container"><input type="text" class="fs-input" id="edit-task-link" placeholder="Add link URL"></div></div>
     <div class="fs-row" onclick="document.getElementById('edit-task-files').click()"><div class="fs-icon"><div class="fs-icon-svg"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 6V17.5c0 2.48-2.02 4.5-4.5 4.5s-4.5-2.02-4.5-4.5V5c0-1.66 1.34-3 3-3s3 1.34 3 3v11.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5V6H9v11.5c0 2.48 2.02 4.5 4.5 4.5s4.5-2.02 4.5-4.5V5c0-3.31-2.69-6-6-6s-6 2.69-6 6v12.5c0 4.14 3.36 7.5 7.5 7.5s7.5-3.36 7.5-7.5V6h-1.5z"/></svg></div></div><div class="fs-value empty">Add attachment</div><input type="file" id="edit-task-files" multiple style="display:none" onchange="handleEditFiles(this)"></div>
     <div id="edit-attach-preview" class="attach-preview" style="padding-left:40px"></div>
+    <div class="fs-row"><div class="fs-icon"><div class="fs-icon-svg" style="fill:#25D366"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div></div><div class="fs-input-container"><label class="wa-toggle"><input type="checkbox" id="edit-task-wa"><span class="wa-toggle-label">WhatsApp Reminder</span></label></div></div>
     <div style="padding:16px 0;text-align:center"><button id="edit-delete" style="color:var(--p1);background:none;border:none;font-size:14px;cursor:pointer;padding:8px">Delete Task</button></div>
   </div>
 </div>
@@ -470,7 +491,8 @@ const SVGS = {
   search: '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>',
   plus: '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>',
   close: '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>',
-  bell: '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>'
+  bell: '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>',
+  whatsapp: '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>'
 };
 
 async function initFB(){
@@ -541,7 +563,7 @@ $('auth-google-btn').onclick=async()=>{
 $('auth-pw').onkeydown=e=>{if(e.key==='Enter')$('auth-btn').click()};
 $('logout-btn').onclick=async()=>{if(useFB&&auth)await window._A.signOut(auth);else location.reload()};
 
-async function boot(){await initFB();if(!useFB){S.tasks=lsG('tasks');S.projects=lsG('projects');S.labels=lsG('labels');renderAll();}buildColours()}
+async function boot(){await initFB();if(!useFB){S.tasks=lsG('tasks');S.projects=lsG('projects');S.labels=lsG('labels');renderAll();}buildColours();const wp=getWaPhone();if(wp)$('wa-phone-input').value=wp;}
 boot();
 
 function uuid(){return crypto.randomUUID?crypto.randomUUID():'xxxx-xxxx-xxxx'.replace(/x/g,()=>((Math.random()*16)|0).toString(16))}
@@ -574,6 +596,14 @@ setInterval(() => {
           body: t.description || 'It is time to complete this task.',
           icon: '/icon-512.png'
         });
+        // WhatsApp auto-reminder
+        if (t.waReminder) {
+          const phone = getWaPhone();
+          if (phone) {
+            const msg = encodeURIComponent('⏰ *Task Reminder*\n\n📝 ' + t.text + (t.description ? '\n' + t.description : '') + '\n\n⏰ Due: ' + relDate(t.due));
+            window.open('https://wa.me/' + phone.replace(/[^0-9]/g, '') + '?text=' + msg, '_blank');
+          }
+        }
         notified.push(t.id);
         updated = true;
       }
@@ -607,6 +637,26 @@ function secDate(d){
 
 function sortT(a){return [...a].sort((x,y)=>{if(x.priority!==y.priority)return x.priority-y.priority;if(x.due&&y.due)return new Date(x.due)-new Date(y.due);if(x.due)return -1;if(y.due)return 1;return(y.createdAt||0)-(x.createdAt||0)})}
 
+// WHATSAPP HELPERS
+function getWaPhone(){
+  return localStorage.getItem('wa_phone') || '';
+}
+function saveWaPhone(){
+  const phone = $('wa-phone-input').value.trim();
+  localStorage.setItem('wa_phone', phone);
+  if(phone) alert('\u2705 WhatsApp number saved: ' + phone);
+  else alert('WhatsApp number cleared.');
+}
+window.saveWaPhone = saveWaPhone;
+function waShare(taskId){
+  const t = S.tasks.find(x=>x.id===taskId); if(!t) return;
+  const phone = getWaPhone();
+  const msg = encodeURIComponent('\ud83d\udcdd *Task*: ' + t.text + (t.description ? '\n' + t.description : '') + (t.due ? '\n\u23f0 Due: ' + relDate(t.due) : '') + (t.deadline ? '\n\ud83d\udea9 Deadline: ' + relDate(t.deadline) : ''));
+  const url = phone ? 'https://wa.me/' + phone.replace(/[^0-9]/g,'') + '?text=' + msg : 'https://wa.me/?text=' + msg;
+  window.open(url, '_blank');
+}
+window.waShare = waShare;
+
 // CRUD
 async function dbAdd(c,d){
   if(useFB){d.userId=currentUser.uid;try{const F=window._F;return(await F.addDoc(F.collection(db,c),d)).id}catch(e){console.error('[Sync] Write failed:',e);setSyncStatus(false);throw e}}
@@ -633,13 +683,15 @@ $('btn-add-task').onclick=async()=>{
   
   $('btn-add-task').disabled=true;
   try{
-    const tData={text:txt,description:desc,done:false,priority:pr,projectId:$('new-task-project').value,labels:ls,due,deadline:dl,link:lk,attachments:newAttachments.length?[...newAttachments]:[],subtasks:[],createdAt:Date.now(),completedAt:null};
+    const waR = $('new-task-wa').checked;
+    const tData={text:txt,description:desc,done:false,priority:pr,projectId:$('new-task-project').value,labels:ls,due,deadline:dl,link:lk,attachments:newAttachments.length?[...newAttachments]:[],subtasks:[],createdAt:Date.now(),completedAt:null,waReminder:waR};
     const id=await dbAdd('tasks',tData);
     if(due){const eid=await gcalSync(tData);if(eid)await dbUp('tasks',id,{gcalEventId:eid})}
     $('new-task-name').value='';$('new-task-desc').value='';$('new-task-due').value='';
     $('new-task-deadline').value='';$('new-task-priority').value='4';$('new-task-link').value='';
     document.querySelectorAll('#add-labels-row .label-tag.selected').forEach(x=>x.classList.remove('selected'));
     newAttachments=[];const np=document.getElementById('new-attach-preview');if(np)np.innerHTML='';
+    $('new-task-wa').checked=false;
     updPills();closeAdd()
   }finally{$('btn-add-task').disabled=false}
 };
@@ -690,6 +742,7 @@ function openEdit(id){
   $('edit-task-priority').value=t.priority||4;
   popProj('edit-task-project',t.projectId||'inbox');
   $('edit-task-link').value=t.link||'';
+  $('edit-task-wa').checked=!!t.waReminder;
   renderEditLabels(t.labels||[]);
   openModal('edit-modal');
 }
@@ -706,10 +759,11 @@ $('edit-save').onclick=async()=>{
   const pro=$('edit-task-project').value;
   const lk=$('edit-task-link').value.trim()||null;
   const ls=Array.from(document.querySelectorAll('#edit-labels-row .label-tag.selected')).map(el=>el.dataset.name);
+  const waR = $('edit-task-wa').checked;
   
   $('edit-save').disabled=true;
   try{
-    const newData={text:txt,description:desc,due,deadline:dl,priority:pr,projectId:pro,labels:ls,link:lk,attachments:editAttachments.length?[...editAttachments]:[]};
+    const newData={text:txt,description:desc,due,deadline:dl,priority:pr,projectId:pro,labels:ls,link:lk,attachments:editAttachments.length?[...editAttachments]:[],waReminder:waR};
     await dbUp('tasks',id,newData);
     if(t&&t.gcalEventId){
       if(due)await gcalUpdate(newData,t.gcalEventId);
@@ -1012,6 +1066,7 @@ function taskH(t){
   if(t.link)ch+=`<a href="${t.link.startsWith('http')?t.link:'https://'+t.link}" target="_blank" class="chip chip-link" onclick="event.stopPropagation()"><span class="chip-svg">${SVGS.link}</span> Open Link</a>`;
   (t.labels||[]).forEach(l=>ch+=`<span class="chip chip-label"><span class="chip-svg">${SVGS.label}</span> ${esc(l)}</span>`);
   if(t.attachments&&t.attachments.length)ch+=`<span class="chip chip-attach"><span class="chip-svg">${SVGS.attach}</span> ${t.attachments.length} file${t.attachments.length>1?'s':''}</span>`;
+  if(t.waReminder)ch+=`<span class="chip chip-wa"><span class="chip-svg" style="fill:#25D366">${SVGS.whatsapp}</span> WhatsApp</span>`;
   let stH='';
   if(t.subtasks&&t.subtasks.length){stH='<div class="subtask-list">'+t.subtasks.map((s,i)=>`<div class="subtask-item${s.done?' done':''}"><div class="priority-circle" onclick="toggleSub('${t.id}',${i})">${s.done?SVGS.check:''}</div><span class="subtask-text">${linkify(s.text)}</span></div>`).join('')+'</div>'}
   return `<div class="task-item${dn}${p1b}">
@@ -1020,7 +1075,7 @@ function taskH(t){
       <div class="add-subtask-btn" onclick="event.stopPropagation();showStInput('${t.id}')">+ Add subtask</div>
       <div class="subtask-inline" id="st-input-${t.id}" style="display:none;padding-left:0"><input type="text" id="st-text-${t.id}" placeholder="Subtask name" onkeydown="if(event.key==='Enter')addSub('${t.id}')"><button class="btn-add" onclick="addSub('${t.id}')" style="font-size:11px;padding:4px 10px">Add</button></div>
     </div>
-    <div class="task-actions"><button onclick="openEdit('${t.id}')" title="Edit">${SVGS.edit}</button><button onclick="dupTask('${t.id}')" title="Duplicate">${SVGS.copy}</button><button onclick="delTask('${t.id}')" title="Delete">${SVGS.delete}</button></div></div>`
+    <div class="task-actions"><button onclick="openEdit('${t.id}')" title="Edit">${SVGS.edit}</button><button onclick="waShare('${t.id}')" title="Share via WhatsApp" class="wa-share-btn"><span style="fill:#25D366">${SVGS.whatsapp}</span></button><button onclick="dupTask('${t.id}')" title="Duplicate">${SVGS.copy}</button><button onclick="delTask('${t.id}')" title="Delete">${SVGS.delete}</button></div></div>`
 }
 
 function emptyH(i,m){

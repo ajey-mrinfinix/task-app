@@ -722,7 +722,7 @@ $('btn-add-task').onclick=async()=>{
     const waR = $('new-task-wa').checked;
     const tData={text:txt,description:desc,done:false,priority:pr,projectId:$('new-task-project').value,labels:ls,due,deadline:dl,link:lk,attachments:newAttachments.length?[...newAttachments]:[],subtasks:[],createdAt:Date.now(),completedAt:null,waReminder:waR};
     const id=await dbAdd('tasks',tData);
-    if(due){const eid=await gcalSync(tData);if(eid)await dbUp('tasks',id,{gcalEventId:eid})}
+    try{if(due){const eid=await gcalSync(tData);if(eid)await dbUp('tasks',id,{gcalEventId:eid})}}catch(e){console.warn('[GCal] Sync skipped:',e)}
     $('new-task-name').value='';$('new-task-desc').value='';$('new-task-due').value='';
     $('new-task-deadline').value='';$('new-task-priority').value='4';$('new-task-link').value='';
     document.querySelectorAll('#add-labels-row .label-tag.selected').forEach(x=>x.classList.remove('selected'));

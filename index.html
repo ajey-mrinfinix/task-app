@@ -255,6 +255,12 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;color:var(--text-
 .wa-toggle-label{font-size:13px;color:var(--text-muted)}
 .chip-wa{background:rgba(37,211,102,.15);color:#25D366}
 .wa-share-btn{color:#25D366!important}
+/* WA TOAST */
+.wa-toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#25D366;color:#fff;padding:14px 20px;border-radius:12px;z-index:5000;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.3);font-size:14px;font-weight:500;animation:slideUp .3s ease;max-width:90%;width:400px}
+.wa-toast svg{width:24px;height:24px;fill:#fff;flex-shrink:0}
+.wa-toast-msg{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wa-toast-btn{background:#fff;color:#25D366;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit}
+.wa-toast-close{background:none;border:none;color:rgba(255,255,255,.7);font-size:20px;cursor:pointer;padding:0 4px}
 /* CALENDAR VIEW */
 .cv-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;margin-bottom:32px}
 .cv-dh{background:var(--bg);padding:8px;font-size:12px;font-weight:600;color:var(--text-muted);text-align:center;border-bottom:1px solid var(--border)}
@@ -582,36 +588,66 @@ if (!('Notification' in window) || Notification.permission !== 'default') {
 }
 
 setInterval(() => {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
   const now = new Date().getTime();
   const notified = lsG('notified_tasks');
+  const waNotified = lsG('wa_notified_tasks');
   let updated = false;
+  let waUpdated = false;
   
   S.tasks.forEach(t => {
-    if (t.done || !t.due || notified.includes(t.id)) return;
+    if (t.done || !t.due) return;
     if (t.due.includes('T') && t.due.split('T')[1] !== '23:59') {
       const dueTime = new Date(t.due).getTime();
       if (now >= dueTime && now <= dueTime + 3600000) {
-        new Notification('Task Due: ' + t.text, {
-          body: t.description || 'It is time to complete this task.',
-          icon: '/icon-512.png'
-        });
-        // WhatsApp auto-reminder
-        if (t.waReminder) {
+        // Browser notification
+        if (!notified.includes(t.id) && 'Notification' in window && Notification.permission === 'granted') {
+          new Notification('Task Due: ' + t.text, {
+            body: t.description || 'It is time to complete this task.',
+            icon: '/icon-512.png'
+          });
+          notified.push(t.id);
+          updated = true;
+        }
+        // WhatsApp reminder (independent of browser notifications)
+        if (t.waReminder && !waNotified.includes(t.id)) {
           const phone = getWaPhone();
           if (phone) {
-            const msg = encodeURIComponent('⏰ *Task Reminder*\n\n📝 ' + t.text + (t.description ? '\n' + t.description : '') + '\n\n⏰ Due: ' + relDate(t.due));
-            window.open('https://wa.me/' + phone.replace(/[^0-9]/g, '') + '?text=' + msg, '_blank');
+            showWaToast(t);
           }
+          waNotified.push(t.id);
+          waUpdated = true;
         }
-        notified.push(t.id);
-        updated = true;
       }
     }
   });
   
   if (updated) lsS('notified_tasks', notified);
-}, 60000);
+  if (waUpdated) lsS('wa_notified_tasks', waNotified);
+}, 15000);
+
+function showWaToast(task) {
+  // Remove any existing toast
+  const old = document.querySelector('.wa-toast');
+  if (old) old.remove();
+  
+  const phone = getWaPhone().replace(/[^0-9]/g, '');
+  const msg = encodeURIComponent('\u23f0 *Task Reminder*\n\n\ud83d\udcdd ' + task.text + (task.description ? '\n' + task.description : '') + '\n\n\u23f0 Due: ' + relDate(task.due));
+  const waUrl = 'https://wa.me/' + phone + '?text=' + msg;
+  
+  const toast = document.createElement('div');
+  toast.className = 'wa-toast';
+  toast.innerHTML = `
+    ${SVGS.whatsapp}
+    <span class="wa-toast-msg">\ud83d\udcdd ${esc(task.text)}</span>
+    <a href="${waUrl}" target="_blank" class="wa-toast-btn">Open WhatsApp</a>
+    <button class="wa-toast-close" onclick="this.parentElement.remove()">&times;</button>
+  `;
+  document.body.appendChild(toast);
+  
+  // Auto-remove after 30 seconds
+  setTimeout(() => { if (toast.parentElement) toast.remove(); }, 30000);
+}
+window.showWaToast = showWaToast;
 
 // DATE HELPERS
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
